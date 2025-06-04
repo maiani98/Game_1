@@ -1,0 +1,16 @@
+{
+    "name": "ChaosCosmos.UI",
+    "rootNamespace": "ChaosCosmos.UI",
+    "references": [
+        "ChaosCosmos.Core"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

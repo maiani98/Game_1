@@ -1,0 +1,485 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!29 &1
+OcclusionCullingSettings:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_OcclusionBakeSettings:
+    smallestOccluder: 5
+    smallestHole: 0.25
+    backfaceThreshold: 100
+  m_SceneGUID: 00000000000000000000000000000000
+  m_OcclusionCullingData: {fileID: 0}
+--- !u!104 &2
+RenderSettings:
+  m_ObjectHideFlags: 0
+  serializedVersion: 9
+  m_Fog: 0
+  m_FogColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+  m_FogMode: 3
+  m_FogDensity: 0.01
+  m_LinearFogStart: 0
+  m_LinearFogEnd: 300
+  m_AmbientSkyColor: {r: 0.212, g: 0.227, b: 0.259, a: 1}
+  m_AmbientEquatorColor: {r: 0.114, g: 0.125, b: 0.133, a: 1}
+  m_AmbientGroundColor: {r: 0.047, g: 0.043, b: 0.035, a: 1}
+  m_AmbientIntensity: 1
+  m_AmbientMode: 0
+  m_SubtractiveShadowColor: {r: 0.42, g: 0.478, b: 0.627, a: 1}
+  m_SkyboxMaterial: {fileID: 10304, guid: 0000000000000000f000000000000000, type: 0}
+  m_HaloStrength: 0.5
+  m_FlareStrength: 1
+  m_FlareFadeSpeed: 3
+  m_HaloTexture: {fileID: 0}
+  m_SpotCookie: {fileID: 10001, guid: 0000000000000000e000000000000000, type: 0}
+  m_DefaultReflectionMode: 0
+  m_DefaultReflectionResolution: 128
+  m_ReflectionBounces: 1
+  m_ReflectionIntensity: 1
+  m_CustomReflection: {fileID: 0}
+  m_Sun: {fileID: 0} # Default Directional Light could be added here
+  m_IndirectSpecularColor: {r: 0, g: 0, b: 0, a: 1}
+  m_UseRadianceAmbientProbe: 0
+--- !u!157 &3
+LightmapSettings:
+  m_ObjectHideFlags: 0
+  serializedVersion: 12
+  m_GIWorkflowMode: 0
+  m_GISettings:
+    serializedVersion: 2
+    m_BounceScale: 1
+    m_IndirectOutputScale: 1
+    m_AlbedoBoost: 1
+    m_EnvironmentLightingMode: 0
+    m_EnableBakedLightmaps: 1
+    m_EnableRealtimeLightmaps: 0
+  # ... (rest of default LightmapSettings)
+--- !u!196 &4
+NavMeshSettings:
+  m_ObjectHideFlags: 0
+  # ... (default NavMeshSettings)
+--- !u!1 &100100000 # Scene Root Object (optional, for organization)
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children:
+  - {fileID: 200100000} # Main Camera
+  - {fileID: 300100000} # PlayerPlanet placeholder
+  m_Component:
+  - component: {fileID: 0} # Transform for Scene Root
+  m_Layer: 0
+  m_Name: PlanetTestScene
+  m_TagString: Untagged
+  m_IsActive: 1
+--- !u!20 &200100000 # Main Camera GameObject
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 1, z: -10} # Standard camera position
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Component:
+  - component: {fileID: 200100001} # Camera Component
+  - component: {fileID: 200100002} # Transform
+  - component: {fileID: 200100003} # AudioListener (optional, usually with camera)
+  - component: {fileID: 200100004} # GUILayer (optional, for older UI)
+  m_Layer: 0
+  m_Name: Main Camera
+  m_TagString: "MainCamera" # Crucial for Camera.main
+  m_IsActive: 1
+--- !u!20 &200100001 # Camera Component
+Camera:
+  m_ObjectHideFlags: 0
+  # ... (default camera properties, orthographic for 2D is common)
+  m_Orthographic: 1
+  m_OrthographicSize: 5
+--- !u!4 &200100002 # Transform for Main Camera
+Transform:
+  m_ObjectHideFlags: 0
+  m_GameObject: {fileID: 200100000}
+  # ... (transform details)
+--- !u!1 &300100000 # PlayerPlanet GameObject (Placeholder)
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0} # Center of the scene
+  m_LocalScale: {x: 1, y: 1, z: 1} # Will be controlled by PlanetController
+  m_Component:
+  - component: {fileID: 300100001} # Transform for PlayerPlanet
+  # UNITY EDITOR SETUP REQUIRED FOR PlayerPlanet:
+  # 1. Add a SpriteRenderer component (choose a sprite, e.g., a circle).
+  # 2. Add Rigidbody2D component:
+  #    - Body Type: Dynamic
+  #    - Gravity Scale: 0
+  # 3. Add CircleCollider2D component.
+  # 4. Add the PlanetController (Script) component.
+  # 5. In the PlanetController component, assign `Assets/Settings/DefaultPlanetGrowth.asset` to the `Growth Data` field.
+  # 6. (Optional) Assign a ParticleSystem prefab to `Absorb Vfx`.
+  m_Layer: 0
+  m_Name: PlayerPlanet
+  m_TagString: Untagged # Or "Player" if needed later
+  m_IsActive: 1
+--- !u!4 &300100001 # Transform for PlayerPlanet
+Transform:
+  m_ObjectHideFlags: 0
+  m_GameObject: {fileID: 300100000}
+  # ... (transform details)
+
+# Ensure a Directional Light is also present if not included in default settings
+# (e.g., if Skybox is not used for ambient light in a 2D game, a light might be desired)
+# --- !u!108 &400100000 Light Component (Directional)
+# ...
+# --- !u!1 &400100001 GameObject for Directional Light
+# ...
+
+# Note: This scene file is a basic structure. Specific component values for Camera,
+# LightmapSettings, NavMeshSettings etc., are Unity defaults or placeholders.
+# The critical parts are the Main Camera with the "MainCamera" tag,
+# and the placeholder "PlayerPlanet" GameObject which needs manual setup in Unity Editor
+# as described in its comments.
+#
+# INSTRUCTIONS FOR TESTING INGESTION SYSTEM:
+#
+# 1. Define the "Collectible" Tag:
+#    - In Unity Editor, go to "Edit > Project Settings > Tags and Layers".
+#    - Under "Tags", click the "+" button to add a new tag.
+#    - Name the new tag "Collectible".
+#
+# 2. Create a "Collectible_Temp" GameObject:
+#    - Create a new 2D object (e.g., Sprite) in the scene, name it "Collectible_Temp".
+#    - Add a SpriteRenderer and assign a simple sprite (e.g., a small circle of a different color than the planet).
+#    - Add a CircleCollider2D component.
+#        - IMPORTANT: Enable "Is Trigger" on this CircleCollider2D.
+#    - Add the `MassSource.cs` script (Assets/Scripts/Gameplay/MassSource.cs) to it.
+#        - Set its `Mass Value` in the Inspector (e.g., to 0.5 or 1).
+#    - Assign the "Collectible" Tag (created in step 1) to this GameObject.
+#
+# 3. Create the "Collectible.prefab":
+#    - Create a folder `Assets/Prefabs/` if it doesn't exist.
+#    - Drag the configured "Collectible_Temp" GameObject from the Hierarchy into the `Assets/Prefabs/` folder.
+#    - This will create `Collectible.prefab`. You can delete "Collectible_Temp" from the scene after this.
+#
+# 4. Populate the Scene with Collectibles:
+#    - Drag multiple instances of `Collectible.prefab` from `Assets/Prefabs/` into the scene.
+#    - Place them in various locations where the "PlayerPlanet" can collide with them.
+#
+# 5. (Optional) Assign Absorb VFX to PlayerPlanet:
+#    - If you have a particle effect prefab for absorption, assign it to the `Absorb Vfx` field
+#      on the `PlanetController` component of the "PlayerPlanet" GameObject.
+#
+# 6. Run the Scene:
+#    - Control the "PlayerPlanet" with the mouse.
+#    - When it collides with a "Collectible", the collectible should disappear,
+#      the planet's mass should increase (visible by its scale change),
+#      and debug messages should appear in the console.
+#
+# INSTRUCTIONS FOR ADDING ARENA MANAGER:
+#
+# 1. Create an Empty GameObject for ArenaManager:
+#    - In the Hierarchy of `PlanetTestScene`, create a new empty GameObject.
+#    - Name it "_ArenaManager".
+#
+# 2. Attach ArenaManager Script:
+#    - Select "_ArenaManager" GameObject.
+#    - Add the `ArenaManager.cs` script (Assets/Scripts/Gameplay/ArenaManager.cs) as a component.
+#
+# 3. Configure ArenaManager in Inspector:
+#    - `Arena Center`: Keep at (0,0) or adjust as needed.
+#    - `Arena Size`: Set to desired dimensions (e.g., X: 100, Y: 60).
+#    - `Collectible Prefab`: Drag your `Collectible.prefab` (from `Assets/Prefabs/`) into this slot.
+#    - `Max Collectibles`: Set the maximum number of collectibles allowed in the arena (e.g., 20-30).
+#    - `Spawn Interval`: Time in seconds between spawn attempts (e.g., 1 or 2 seconds).
+#    - `Initial Spawn Delay`: Delay before the first spawn wave (e.g., 1 second).
+#    - `Spawn Overlap Check Layer Mask` (Optional):
+#        - If you want to prevent collectibles from spawning on top of other objects (like the player or obstacles):
+#            - Ensure your player/obstacles are on a specific layer (e.g., "Player" or "Obstacles").
+#            - Select this layer(s) in the `Spawn Overlap Check Layer Mask` dropdown in the Inspector.
+#            - Note: The `PlanetController` itself does not have a layer set by default in these instructions.
+#              You might need to assign a layer to the "PlayerPlanet" GameObject for this to be effective if checking against the player.
+#
+# 4. Test Spawning:
+#    - You might want to temporarily remove any manually placed `Collectible` prefabs from the scene
+#      to clearly observe the `ArenaManager`'s spawning behavior.
+#    - Run the scene. Collectibles should start spawning within the defined arena boundaries.
+#    - Verify that the `PlanetController` can ingest these dynamically spawned collectibles.
+#
+# CONSIDERATION FOR PLANETCONTROLLER (Future Improvement):
+# - To keep the `PlanetController` within the arena bounds defined by `ArenaManager`,
+#   you could modify `PlanetController.cs`. In its `Update()` or `FixedUpdate()` method,
+#   get a reference to the `ArenaManager` instance and use its `ClampPositionToBounds()` method:
+#
+#   // Example snippet for PlanetController.cs
+#   // public ArenaManager arenaManager; // Assign in Inspector
+#   // void FixedUpdate() {
+#   //    // ... (existing movement logic)
+#   //    if (arenaManager != null) {
+#   //        rb.position = arenaManager.ClampPositionToBounds(rb.position);
+#   //    }
+#   // }
+#   For now, this is just a consideration and not implemented in this task.
+#
+# INSTRUCTIONS FOR ADDING BOT AI (BotBrain):
+#
+# 1. Modify PlanetController.cs for Bot Interaction:
+#    - Open `Assets/Scripts/Gameplay/PlanetController.cs`.
+#    - To allow `BotBrain` to correctly use the planet's speed modifier based on its mass,
+#      you need to expose either the `currentMass` or the `SpeedModifier()` result.
+#    - **Option A (Recommended):** Add these public methods to `PlanetController.cs`:
+#      ```csharp
+#      public float GetCurrentMass()
+#      {
+#          return currentMass;
+#      }
+#
+#      public float GetCurrentSpeedModifier()
+#      {
+#          return SpeedModifier(); // Assuming SpeedModifier() is a private method in PlanetController
+#      }
+#      ```
+#    - **Option B (Simpler, less encapsulated):** Change `private float currentMass;`
+#      to `public float currentMass;`
+#
+# 2. Update BotBrain.cs to Use PlanetController's Data:
+#    - Open `Assets/Scripts/Gameplay/AI/BotBrain.cs`.
+#    - Locate the `GetSpeedModifierFromPlanetController()` method.
+#    - If you implemented Option A in `PlanetController.cs`:
+#      Replace `return 1.0f;` with `return planetController.GetCurrentSpeedModifier();`
+#    - If you implemented Option B in `PlanetController.cs` (making `currentMass` public):
+#      Replace `return 1.0f;` with:
+#      `return Mathf.Lerp(1.4f, 0.6f, Mathf.InverseLerp(1f, 40f, planetController.currentMass));`
+#
+# 3. Ensure Player GameObject is Tagged "Player":
+#    - Select your main player GameObject (e.g., "PlayerPlanet").
+#    - In the Inspector, ensure its "Tag" is set to "Player". If the tag doesn't exist, add it via
+#      "Add Tag..." in the dropdown, then assign it. Bots use this tag to find the player.
+#
+# 4. Create the "BotPlanet" Prefab:
+#    - Duplicate your "PlayerPlanet" GameObject in the scene (or create a similar one from scratch).
+#      Rename the duplicate to "BotPlanet_Temp".
+#    - **Crucial:** If "PlayerPlanet" has any scripts for direct player input (it shouldn't, as
+#      PlanetController handles mouse input), remove or disable them on "BotPlanet_Temp".
+#    - Ensure "BotPlanet_Temp" has the following components:
+#        * `SpriteRenderer` (consider a different color for bots).
+#        * `Rigidbody2D` (Dynamic, Gravity Scale = 0).
+#        * `CircleCollider2D`.
+#        * `PlanetController.cs`. Assign `PlanetGrowthData` as you did for the player.
+#        * `BotBrain.cs` (Assets/Scripts/Gameplay/AI/BotBrain.cs).
+#    - Configure `BotBrain` on "BotPlanet_Temp" in the Inspector:
+#        * `Arena Manager`: Drag your "_ArenaManager" GameObject from the scene to this slot.
+#        * Adjust `Chase Player Detection Radius`, `Lose Player Chase Radius`, `State Change Interval Min/Max` as desired.
+#    - Create a prefab folder `Assets/Prefabs/` if it doesn't already exist.
+#    - Drag "BotPlanet_Temp" from the Hierarchy into `Assets/Prefabs/` to create `BotPlanet.prefab`.
+#    - You can delete "BotPlanet_Temp" from the scene after creating the prefab.
+#
+# 5. Add Bot Instances to the Scene:
+#    - Drag one or more `BotPlanet.prefab` instances from `Assets/Prefabs/` into your `PlanetTestScene`.
+#    - Place them at various starting positions within the arena.
+#
+# 6. Test:
+#    - Run the scene. Bots should start roaming.
+#    - If the player (tagged "Player") moves within a bot's `chasePlayerDetectionRadius`, the bot should start chasing.
+#    - If the player moves out of the `losePlayerChaseRadius`, the bot should revert to roaming.
+#    - Bots should also ingest collectibles via their `PlanetController` and grow.
+#    - Observe Gizmos in the Scene view (when a bot is selected) to see its state and detection radii.
+#
+# INSTRUCTIONS FOR ADDING POWER-UPS (SpeedBoost Example):
+#
+# 1. Confirm PlanetController.cs Modifications:
+#    - Open `Assets/Scripts/Gameplay/PlanetController.cs`.
+#    - Ensure the following changes from this task have been applied:
+#        * `private float currentSpeedMultiplier = 1f;` field is added.
+#        * `public void ApplySpeedMultiplier(float multiplier, bool apply)` method is added.
+#        * In `HandleInput()`, the line calculating velocity is modified to include `* currentSpeedMultiplier`.
+#          Example: `rb.velocity = direction.normalized * baseSpeed * SpeedModifier() * currentSpeedMultiplier;`
+#    - (For Bots) If `BotBrain.cs` directly calculates and sets velocity, it too would need to incorporate
+#      `currentSpeedMultiplier` from its `PlanetController` for the bot to benefit from power-ups.
+#      This might involve calling `planetController.GetCurrentSpeedModifier()` and then also multiplying by
+#      `planetController.currentSpeedMultiplier` (if `currentSpeedMultiplier` was made public or a getter was provided).
+#      Alternatively, `PlanetController` could expose a final calculated speed property.
+#      For now, focus on player `PlanetController` changes for testing.
+#
+# 2. Create SpeedBoostEffect Asset:
+#    - In the Project panel, navigate to `Assets/Settings/PowerUpEffects/`.
+#    - Right-click in this folder, then select "Create > ChaosCosmos/PowerUp Effects/Speed Boost".
+#    - Name the created asset `SpeedBoost_Default.asset`.
+#    - Select `SpeedBoost_Default.asset`. In the Inspector, configure its properties:
+#        * `Effect Name`: "Speed Boost" (or leave as is)
+#        * `Description`: "Temporarily increases movement speed."
+#        * `Duration`: e.g., 5 (seconds)
+#        * `Speed Multiplier`: e.g., 1.5 (for a 50% speed increase)
+#
+# 3. Create PowerUp Prefab (SpeedBoostPowerUp.prefab):
+#    - Create a new folder `Assets/Prefabs/PowerUps/` if it doesn't exist.
+#    - In the `PlanetTestScene` Hierarchy, create a new 2D GameObject (e.g., "Sprite").
+#      Name it "SpeedBoostPowerUp_Temp".
+#    - Add a `SpriteRenderer` component if it doesn't have one. Assign a distinct sprite or color.
+#    - Add a `CircleCollider2D` component. Ensure "Is Trigger" is checked (though the script also enforces this).
+#    - Add the `PowerUpPickup.cs` script (Assets/Scripts/Gameplay/PowerUps/PowerUpPickup.cs) to it.
+#    - In the `PowerUpPickup` component in the Inspector, drag `SpeedBoost_Default.asset`
+#      from `Assets/Settings/PowerUpEffects/` to the `Power Up Effect` slot.
+#    - Drag "SpeedBoostPowerUp_Temp" from the Hierarchy into the `Assets/Prefabs/PowerUps/` folder
+#      to create the `SpeedBoostPowerUp.prefab`.
+#    - You can delete "SpeedBoostPowerUp_Temp" from the scene.
+#
+# 4. Add PowerUp Instances to the Scene:
+#    - Drag one or more `SpeedBoostPowerUp.prefab` instances from `Assets/Prefabs/PowerUps/`
+#      into your `PlanetTestScene`.
+#    - Place them at various locations where the player (or bots) can collide with them.
+#
+# 5. Test:
+#    - Run the scene.
+#    - Move the player's planet over a SpeedBoostPowerUp instance.
+#    - The power-up should disappear.
+#    - The player's planet should move noticeably faster for the specified duration.
+#    - Check the console for logs from `PlanetController.ApplySpeedMultiplier` and `SpeedBoostEffect`.
+#    - After the duration, the speed should revert to normal.
+#
+# INSTRUCTIONS FOR ADDING HUD (HEADS-UP DISPLAY V1):
+#
+# 1. TextMeshPro Setup (Recommended):
+#    - If you plan to use TextMeshPro for UI text (recommended for better quality):
+#        - Ensure the "TextMesh Pro" package is installed via "Window > Package Manager".
+#        - If using TMP components for the first time in the project, Unity may prompt you to
+#          "Import TMP Essentials". Click this button.
+#
+# 2. PlanetController.GetCurrentMass() Check:
+#    - The `HUDController.cs` script relies on a public method `GetCurrentMass()` in `PlanetController.cs`
+#      to display the player's mass.
+#    - Ensure this method exists in `Assets/Scripts/Gameplay/PlanetController.cs`. It should look like:
+#      ```csharp
+#      public float GetCurrentMass()
+#      {
+#          return currentMass; // where currentMass is the private field holding the planet's mass
+#      }
+#      ```
+#      This might have been added during the `BotBrain.cs` setup. If not, add it now.
+#
+# 3. Create HUD Canvas and UI Elements:
+#    - In the Hierarchy of `PlanetTestScene.unity`:
+#        a. Right-click -> UI -> Canvas. Rename it "HUDCanvas".
+#           - An `EventSystem` GameObject should be automatically created. If not, add one (UI > Event System).
+#        b. Select "HUDCanvas". In the Inspector, find the "Canvas Scaler" component:
+#           - Set `UI Scale Mode` to "Scale With Screen Size".
+#           - Set `Reference Resolution` (e.g., X: 1920, Y: 1080). Match with `Match Width Or Height`.
+#        c. Create Mass Display Text:
+#           - Right-click on "HUDCanvas" -> UI -> Text - TextMeshPro (or UI -> Text for standard UI.Text).
+#           - Rename it "MassTextDisplay".
+#           - In its RectTransform, anchor it to the top-left:
+#               - Click the Anchor Presets square, hold Shift+Alt, and click the top-left box.
+#           - Adjust `Pos X`, `Pos Y` for padding (e.g., Pos X: 20, Pos Y: -20).
+#           - Set placeholder text (e.g., "Massa: 0.0"), font size, color.
+#        d. Create Timer Display Text:
+#           - Right-click on "HUDCanvas" -> UI -> Text - TextMeshPro (or UI -> Text).
+#           - Rename it "TimerTextDisplay".
+#           - Anchor it to the top-right (Shift+Alt + top-right box in Anchor Presets).
+#           - Adjust `Pos X`, `Pos Y` for padding (e.g., Pos X: -20, Pos Y: -20).
+#           - Set placeholder text (e.g., "Tempo: 00:00"), font size, color.
+#
+# 4. Setup HUDController GameObject:
+#    - Create an empty GameObject as a child of "HUDCanvas". Name it "_HUDController".
+#    - Attach the `HUDController.cs` script (Assets/Scripts/UI/HUDController.cs) to "_HUDController".
+#    - Select "_HUDController". In the Inspector for the `HUDController` component:
+#        - Drag the "MassTextDisplay" GameObject from the Hierarchy to the `Mass Text` slot.
+#        - Drag the "TimerTextDisplay" GameObject from the Hierarchy to the `Timer Text` slot.
+#        - Ensure `Player Tag` is set to "Player" (or whatever tag your main player GameObject uses).
+#
+# 5. Test the HUD:
+#    - Run the scene.
+#    - The "Massa" text should update as the player planet collects MassSources.
+#    - The "Tempo" text should start counting up from 00:00.
+#    - Verify that the player GameObject is tagged correctly if the HUDController doesn't find it.
+#
+# INSTRUCTIONS FOR PROGRESSION SYSTEM (ProgressManager & UpgradeData):
+#
+# 1. Create UpgradeData Assets:
+#    - In the Project panel, navigate to `Assets/Settings/UpgradeData/`.
+#    - Right-click -> Create -> ChaosCosmos/Progression/Upgrade Data.
+#    - Create a few examples:
+#        a. Name: `SpeedUpgradeLvl1.asset`
+#           - Upgrade ID: (auto-generated or e.g., `basespeed_lvl_1`)
+#           - Upgrade Name: "Velocità Base +10%"
+#           - Description: "Aumenta la velocità di base del pianeta del 10%."
+#           - XP Cost: 100
+#           - Stat To Upgrade: `BaseSpeed`
+#           - Upgrade Value: 0.1
+#           - Is Percentage Based: true
+#           - Max Level: 3
+#           - Required Player Level: 1
+#        b. Name: `InitialMassUpgrade.asset`
+#           - Upgrade ID: (auto-generated or e.g., `initialmass_lvl_1`)
+#           - Upgrade Name: "Massa Iniziale +5"
+#           - Description: "Aumenta la massa iniziale del pianeta di 5 unità."
+#           - XP Cost: 50
+#           - Stat To Upgrade: `InitialMass`
+#           - Upgrade Value: 5
+#           - Is Percentage Based: false
+#           - Max Level: 1
+#           - Required Player Level: 0
+#
+# 2. Complete ProgressManager Logic (User Task for Full Functionality):
+#    - The current `ProgressManager.cs` has placeholder logic for `GetStatValue()` and parts of
+#      `LoadProgress()` / `ResetProgress()`.
+#    - To make these fully functional:
+#        a. `ProgressManager` needs a way to access all available `UpgradeData` ScriptableObjects in the game.
+#           A common method is to place all `UpgradeData` assets in a "Resources/Settings/UpgradeData"
+#           folder and load them using `Resources.LoadAll<UpgradeData>("Settings/UpgradeData")` in the
+#           `ProgressManager`'s constructor or an initialization method. Store them in a list like `private List<UpgradeData> allGameUpgrades;`.
+#        b. Implement `GetStatValue(StatType stat, float baseValue)`:
+#           - Iterate through `purchasedUpgradeLevels`. For each purchased upgrade ID:
+#             - Find the corresponding `UpgradeData` object from your `allGameUpgrades` list.
+#             - If the `UpgradeData.statToUpgrade` matches the `stat` parameter:
+#               - Apply its `upgradeValue` to `modifiedValue` for `purchasedLevel` times, respecting `isPercentageBased`.
+#        c. Complete `LoadProgress()`:
+#           - After loading XP and Level, iterate through your `allGameUpgrades` list. For each `UpgradeData`:
+#             - Load `PlayerPrefs.GetInt(UPGRADES_SAVE_KEY_PREFIX + ud.upgradeID, 0);`.
+#             - If the loaded level is > 0, store it in `purchasedUpgradeLevels`.
+#        d. Complete `ResetProgress()`:
+#           - Iterate through `allGameUpgrades` and delete the PlayerPrefs key for each upgrade ID.
+#
+# 3. Integrate Upgrades into PlanetController (Conceptual - User Task):
+#    - Open `Assets/Scripts/Gameplay/PlanetController.cs`.
+#    - In `Awake()` or `Start()`:
+#      ```csharp
+#      // private float initialBaseSpeed; // Store original value from Inspector
+#      // private float initialPlanetMass; // Store original value if InitialMass is an upgradeable stat
+#
+#      // In Awake() or Start(), after getting Rigidbody, etc.:
+#      // initialBaseSpeed = this.baseSpeed;
+#      // initialPlanetMass = this.currentMass; // Assuming currentMass is initialized from an Inspector value or default
+#
+#      // IProgressService progressService = ServiceLocator.Get<IProgressService>();
+#      // if (progressService != null)
+#      // {
+#      //     this.baseSpeed = progressService.GetStatValue(StatType.BaseSpeed, initialBaseSpeed);
+#      //     this.currentMass = progressService.GetStatValue(StatType.InitialMass, initialPlanetMass);
+#      //     // Call UpdateScale() if currentMass is changed here and it's not called by default in Start/Awake
+#      //     UpdateScale();
+#      //     Debug.Log($"PlanetController: Stats updated by ProgressManager. BaseSpeed: {this.baseSpeed}, InitialMass: {this.currentMass}");
+#      // }
+#      ```
+#    - This step requires `ProgressManager.GetStatValue()` to be fully implemented.
+#    - Similar logic would apply to other stats (e.g., if `PlanetGrowthData.massToRadiusCurve` values were
+#      modified by an upgrade like `MassToRadiusMultiplier`).
+#
+# 4. Testing Progression (Conceptual):
+#    - Add temporary UI or debug commands to:
+#        * Grant XP: e.g., `ServiceLocator.Get<IProgressService>().AddXP(50);`
+#        * List available upgrades (from `allGameUpgrades` in `ProgressManager`).
+#        * Attempt to purchase an upgrade: e.g., `ServiceLocator.Get<IProgressService>().PurchaseUpgrade(someUpgradeDataAsset);`
+#        * View current stats/XP/Level.
+#        * Reset progress: `ServiceLocator.Get<IProgressService>().ResetProgress();`
+#    - Verify that PlayerPrefs are saved and loaded correctly between game sessions.
+#    - Check that stats in `PlanetController` reflect purchased upgrades after game restart and `GetStatValue` is implemented.

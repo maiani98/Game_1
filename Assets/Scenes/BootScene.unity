@@ -1,0 +1,100 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!29 &1
+OcclusionCullingSettings:
+  m_ObjectHideFlags: 0
+  # ... (default OcclusionCullingSettings)
+--- !u!104 &2
+RenderSettings:
+  m_ObjectHideFlags: 0
+  # ... (default RenderSettings, ensure a skybox or solid color for background)
+  m_SkyboxMaterial: {fileID: 0} # Or a simple default skybox
+--- !u!157 &3
+LightmapSettings:
+  m_ObjectHideFlags: 0
+  # ... (default LightmapSettings)
+--- !u!196 &4
+NavMeshSettings:
+  m_ObjectHideFlags: 0
+  # ... (default NavMeshSettings)
+--- !u!1 &100100000 # Scene Root Object (optional)
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children:
+  - {fileID: 200100000} # Main Camera
+  - {fileID: 300100000} # _Bootstrapper GameObject
+  m_Component:
+  - component: {fileID: 0} # Transform
+  m_Layer: 0
+  m_Name: BootScene
+  m_TagString: Untagged
+  m_IsActive: 1
+--- !u!20 &200100000 # Main Camera GameObject
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: -10}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Component:
+  - component: {fileID: 200100001} # Camera Component
+  - component: {fileID: 200100002} # Transform
+  # Optional: AudioListener, GUILayer if needed by default
+  m_Layer: 0
+  m_Name: Main Camera
+  m_TagString: "MainCamera"
+  m_IsActive: 1
+--- !u!20 &200100001 # Camera Component
+Camera:
+  m_ObjectHideFlags: 0
+  # Basic camera settings, clear flags to Skybox or Solid Color
+  m_ClearFlags: 1 # Skybox, or 2 for Solid Color
+  m_BackGroundColor: {r: 0.19215687, g: 0.3019608, b: 0.4745098, a: 0} # Default Unity blue
+--- !u!4 &200100002 # Transform for Main Camera
+Transform:
+  m_ObjectHideFlags: 0
+  m_GameObject: {fileID: 200100000}
+--- !u!1 &300100000 # _Bootstrapper GameObject
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Component:
+  - component: {fileID: 300100001} # Transform for _Bootstrapper
+  # UNITY EDITOR SETUP REQUIRED FOR _Bootstrapper:
+  # 1. Attach the `Bootstrapper.cs` script (Assets/Scripts/Core/Bootstrapper.cs) to this GameObject.
+  # 2. In the Inspector for the Bootstrapper component, ensure the `Next Scene Name` field is
+  #    set to "LobbyScene" (or your desired scene name).
+  m_Layer: 0
+  m_Name: _Bootstrapper
+  m_TagString: Untagged
+  m_IsActive: 1
+--- !u!4 &300100001 # Transform for _Bootstrapper
+Transform:
+  m_ObjectHideFlags: 0
+  m_GameObject: {fileID: 300100000}
+
+# BUILD SETTINGS INSTRUCTIONS (Reminder for user):
+# 1. Open "File > Build Settings..."
+# 2. Drag `Assets/Scenes/BootScene.unity` into the "Scenes In Build" list.
+#    Ensure it is at the TOP of the list (index 0).
+# 3. Drag `Assets/Scenes/LobbyScene.unity` into the list.
+# 4. Drag `Assets/Scenes/PlanetTestScene.unity` (or your main gameplay scene) into the list.
+#
+# This BootScene is intended to be the first scene loaded to initialize the game.
+# It will automatically load the "LobbyScene" after initialization.

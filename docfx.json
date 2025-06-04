@@ -1,0 +1,45 @@
+{
+  "metadata": [
+    {
+      "src": [
+        {
+          "files": [
+            "Scripts/Core/**.cs",
+            "Scripts/Gameplay/**.cs",
+            "Scripts/Meta/**.cs",
+            "Scripts/UI/**.cs",
+            "Scripts/LiveOps/**.cs",
+            "Scripts/Services/**.cs"
+          ],
+          "cwd": "Assets"
+        }
+      ],
+      "dest": "docs/api",
+      "disableGitFeatures": false,
+      "disableDefaultFilter": false
+    }
+  ],
+  "build": {
+    "content": [
+      {
+        "files": [
+          "api/**.yml",
+          "articles/**.md"
+        ],
+        "cwd": "docs"
+      }
+    ],
+    "resource": [],
+    "output": "_site",
+    "globalMetadata": {
+      "_appName": "Chaos Cosmos.io Documentation",
+      "_appTitle": "Chaos Cosmos.io Documentation",
+      "_enableSearch": true
+    },
+    "template": [
+      "default",
+      "modern"
+    ],
+    "xrefService": [ "https://xref.docs.microsoft.com/query?uid={uid}" ]
+  }
+}

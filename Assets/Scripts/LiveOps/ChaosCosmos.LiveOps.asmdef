@@ -1,0 +1,16 @@
+{
+    "name": "ChaosCosmos.LiveOps",
+    "rootNamespace": "ChaosCosmos.LiveOps",
+    "references": [
+        "ChaosCosmos.Core"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

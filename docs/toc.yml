@@ -1,0 +1,6 @@
+- name: Introduzione
+  href: articles/index.md
+- name: Architettura
+  href: articles/architecture.md # Placeholder, il file verrà creato dopo
+- name: Gameplay
+  href: articles/gameplay.md   # Placeholder, il file verrà creato dopo

@@ -1,0 +1,148 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!29 &1
+OcclusionCullingSettings:
+  m_ObjectHideFlags: 0
+  # ... (default OcclusionCullingSettings)
+--- !u!104 &2
+RenderSettings:
+  m_ObjectHideFlags: 0
+  # ... (default RenderSettings)
+  m_SkyboxMaterial: {fileID: 0}
+--- !u!157 &3
+LightmapSettings:
+  m_ObjectHideFlags: 0
+  # ... (default LightmapSettings)
+--- !u!196 &4
+NavMeshSettings:
+  m_ObjectHideFlags: 0
+  # ... (default NavMeshSettings)
+--- !u!1 &100100000 # Scene Root
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children:
+  - {fileID: 200100000} # Main Camera
+  - {fileID: 400100000} # Canvas (UI System)
+  - {fileID: 500100000} # EventSystem (UI System)
+  - {fileID: 600100000} # _LobbyManager GameObject
+  m_Component:
+  - component: {fileID: 0} # Transform
+  m_Layer: 0
+  m_Name: LobbyScene
+  m_TagString: Untagged
+  m_IsActive: 1
+--- !u!20 &200100000 # Main Camera GameObject
+GameObject:
+  m_ObjectHideFlags: 0
+  # ... (similar to BootScene's Main Camera, ensure it's tagged "MainCamera")
+  m_Name: Main Camera
+  m_TagString: "MainCamera"
+  # ...
+--- !u!222 &400100000 # Canvas GameObject (Placeholder for UI)
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Component:
+  - component: {fileID: 400100001} # Transform for Canvas
+  - component: {fileID: 400100002} # Canvas Component
+  - component: {fileID: 400100003} # CanvasScaler
+  - component: {fileID: 400100004} # GraphicRaycaster
+  m_Layer: 5 # UI Layer
+  m_Name: Canvas
+  m_IsActive: 1
+--- !u!223 &400100002 # Canvas Component
+Canvas:
+  m_ObjectHideFlags: 0
+  # Default Canvas settings: Render Mode ScreenSpaceOverlay
+--- !u!224 &400100003 # CanvasScaler
+CanvasScaler:
+  m_ObjectHideFlags: 0
+  # Default CanvasScaler settings
+--- !u!225 &400100004 # GraphicRaycaster
+GraphicRaycaster:
+  m_ObjectHideFlags: 0
+  # Default GraphicRaycaster
+--- !u!4 &400100001 # Transform for Canvas
+Transform:
+  m_ObjectHideFlags: 0
+  m_GameObject: {fileID: 400100000}
+--- !u!228 &500100000 # EventSystem GameObject (Placeholder for UI)
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Component:
+  - component: {fileID: 500100001} # Transform
+  - component: {fileID: 500100002} # EventSystem Component
+  - component: {fileID: 500100003} # StandaloneInputModule
+  m_Layer: 0
+  m_Name: EventSystem
+  m_IsActive: 1
+--- !u!4 &500100001 # Transform for EventSystem
+Transform:
+  m_ObjectHideFlags: 0
+  m_GameObject: {fileID: 500100000}
+--- !u!229 &500100002 # EventSystem Component
+EventSystem:
+  m_ObjectHideFlags: 0
+--- !u!230 &500100003 # StandaloneInputModule
+StandaloneInputModule:
+  m_ObjectHideFlags: 0
+--- !u!1 &600100000 # _LobbyManager GameObject
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Component:
+  - component: {fileID: 600100001} # Transform for _LobbyManager
+  # UNITY EDITOR SETUP REQUIRED FOR _LobbyManager AND UI:
+  # 1. Attach the `LobbyManager.cs` script (Assets/Scripts/UI/LobbyManager.cs) to this GameObject.
+  # 2. In the Inspector for the LobbyManager component, ensure the `Gameplay Scene Name` field is
+  #    set to "PlanetTestScene" (or your actual gameplay scene name).
+  # 3. Create a UI Button:
+  #    - Right-click on the "Canvas" GameObject in the Hierarchy.
+  #    - Select "UI > Button - TextMeshPro" (or regular Button if TMP is not set up).
+  #    - Name it "StartGameButton" and customize its text (e.g., "Start Game").
+  # 4. Configure Button OnClick Event:
+  #    - Select the "StartGameButton".
+  #    - In the Inspector, find the "Button" component.
+  #    - Click the "+" under the `OnClick()` event list.
+  #    - Drag the "_LobbyManager" GameObject from the Hierarchy into the object field.
+  #    - From the function dropdown, select "LobbyManager > StartGame()".
+  m_Layer: 0
+  m_Name: _LobbyManager
+  m_TagString: Untagged
+  m_IsActive: 1
+--- !u!4 &600100001 # Transform for _LobbyManager
+Transform:
+  m_ObjectHideFlags: 0
+  m_GameObject: {fileID: 600100000}
+
+# BUILD SETTINGS INSTRUCTIONS (Reminder for user, also in BootScene.unity):
+# 1. Open "File > Build Settings..."
+# 2. Ensure `Assets/Scenes/BootScene.unity` is the FIRST scene (index 0).
+# 3. Add `Assets/Scenes/LobbyScene.unity` to the "Scenes In Build" list.
+# 4. Add `Assets/Scenes/PlanetTestScene.unity` (or your main gameplay scene) to the list.

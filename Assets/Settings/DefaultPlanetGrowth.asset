@@ -1,0 +1,10 @@
+This is a placeholder for the PlanetGrowthData ScriptableObject instance.
+Please create it in the Unity Editor:
+1. Right-click in the `Assets/Settings/` folder in the Project panel.
+2. Select `Create > ChaosCosmos > Planet Growth Data`.
+3. Name the created asset `DefaultPlanetGrowth`.
+4. Ensure the `massToRadiusCurve` values are set as per `PlanetGrowthData.cs` defaults if not automatically populated:
+   - Keyframe(0, 0.5f)
+   - Keyframe(1, 1f)
+   - Keyframe(10, 3f)
+   - Keyframe(40, 5f)
