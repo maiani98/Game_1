@@ -1,223 +1,287 @@
 using UnityEngine;
 using System.Collections.Generic;
-using ChaosCosmos.Gameplay.Progression; // Per UpgradeData e StatType
+using ChaosCosmos.Gameplay.Progression;
+using ChaosCosmos.Core.Services;
+using ChaosCosmos.Services.RemoteConfig;
+using ChaosCosmos.Services.Configuration;
+using ChaosCosmos.Core.Constants;
+using ChaosCosmos.Services.Analytics;
+using System;
 
 namespace ChaosCosmos.Services.Progression
 {
     public class ProgressManager : IProgressService
     {
         public int CurrentXP { get; private set; }
-        public int CurrentPlayerLevel { get; private set; } // Semplice: 1 livello ogni X XP
+        public int CurrentPlayerLevel { get; private set; }
 
-        private const string XP_SAVE_KEY = "ChaosCosmos_PlayerXP";
-        private const string LEVEL_SAVE_KEY = "ChaosCosmos_PlayerLevel";
-        private const string UPGRADES_SAVE_KEY_PREFIX = "ChaosCosmos_UpgradeLevel_";
+        private Dictionary<string, int> _purchasedUpgradeLevels = new Dictionary<string, int>(); // Prefixed
 
-        // Dizionario per tracciare i livelli degli upgrade acquistati (ID -> livello)
-        private Dictionary<string, int> purchasedUpgradeLevels = new Dictionary<string, int>();
+        private readonly IConfigDataService _configDataService;
+        private readonly IRemoteConfigService _remoteConfigService;
 
-        // Lista di tutti gli UpgradeData disponibili nel gioco (da popolare, es. da una risorsa)
-        // Per ora, questo manager non sa quali sono tutti gli upgrade possibili,
-        // ma solo quelli che gli vengono passati per l'acquisto.
-        // In un sistema più avanzato, caricherebbe tutti gli UpgradeData da una cartella Resources.
-        // private List<UpgradeData> allGameUpgrades; // Esempio
-
-        public ProgressManager()
+        public ProgressManager(IConfigDataService configDataService, IRemoteConfigService remoteConfigService)
         {
+            _configDataService = configDataService ?? throw new ArgumentNullException(nameof(configDataService));
+            _remoteConfigService = remoteConfigService ?? throw new ArgumentNullException(nameof(remoteConfigService));
+
+            if (!_configDataService.IsInitialized)
+            {
+                Debug.LogWarning("ProgressManager: IConfigDataService non è inizializzato al momento della costruzione di ProgressManager.");
+            }
+            if (!_remoteConfigService.IsReady)
+            {
+                Debug.LogWarning("ProgressManager: IRemoteConfigService non è pronto al momento della costruzione di ProgressManager.");
+            }
+
             LoadProgress();
-            // Se CurrentPlayerLevel è 0 dopo il Load (es. prima esecuzione o reset senza livello salvato a 1), impostalo a 1.
             if (CurrentPlayerLevel == 0)
             {
                CurrentPlayerLevel = 1;
             }
-            Debug.Log($"ProgressManager: Inizializzato. XP: {CurrentXP}, Livello: {CurrentPlayerLevel}");
+            Debug.Log($"ProgressManager: Costruito. XP: {CurrentXP}, Livello: {CurrentPlayerLevel}. Purchased Upgrades: {_purchasedUpgradeLevels.Count}");
+        }
+
+        public void InitializeNewPlayerIfApplicable()
+        {
+            if (CurrentXP == 0 && _purchasedUpgradeLevels.Count == 0 && CurrentPlayerLevel == 1)
+            {
+                if (_remoteConfigService != null && _remoteConfigService.IsReady)
+                {
+                    int initialXpBonus = _remoteConfigService.GetInt(RemoteConfigKeyPatterns.GetInitialXpBonusKey(), 0);
+                    if (initialXpBonus > 0)
+                    {
+                        AddXP(initialXpBonus);
+                        Debug.Log($"ProgressManager: Concesso bonus XP iniziale A/B Test: {initialXpBonus}");
+
+                        if (ServiceLocator.IsRegistered<IAnalyticsService>())
+                        {
+                            var analytics = ServiceLocator.Get<IAnalyticsService>(); // var è ok qui
+                            analytics.TrackEvent("ABTest_UserSegmentAssigned", new Dictionary<string, object> {
+                                {"experiment_name", "InitialXpBonus"},
+                                {"variant_name", $"Bonus_{initialXpBonus}"}
+                            });
+                        }
+                    }
+                } else {
+                     Debug.LogWarning("ProgressManager: RemoteConfigService non pronto per bonus XP iniziale al momento di InitializeNewPlayerIfApplicable.");
+                }
+            }
+        }
+
+        private int GetXpCostForUpgrade(UpgradeData upgrade)
+        {
+            if (upgrade == null || string.IsNullOrEmpty(upgrade.upgradeID))
+            { // Added braces
+                return int.MaxValue;
+            }
+            if (_remoteConfigService != null && _remoteConfigService.IsReady)
+            {
+                return _remoteConfigService.GetInt(RemoteConfigKeyPatterns.GetUpgradeXpCostKey(upgrade.upgradeID), upgrade.xpCost);
+            }
+            return upgrade.xpCost;
         }
 
         public void AddXP(int amount)
         {
-            if (amount <= 0) return;
+            if (amount <= 0)
+            { // Added braces
+                return;
+            }
             CurrentXP += amount;
-
-            int newLevel = 1 + (CurrentXP / 1000); // Esempio: 1000 XP per livello dopo il primo
+            int newLevel = 1 + (CurrentXP / 1000);
             if (newLevel > CurrentPlayerLevel)
             {
                 CurrentPlayerLevel = newLevel;
                 Debug.Log($"ProgressManager: Level Up! Nuovo Livello: {CurrentPlayerLevel}");
-                // Qui si potrebbero triggerare eventi di level up
             }
-            Debug.Log($"ProgressManager: XP Aggiunti: {amount}. XP Totali: {CurrentXP}");
             SaveProgress();
         }
 
         public bool CanAffordUpgrade(UpgradeData upgrade)
         {
-            if (upgrade == null) return false;
-            // Aggiungi controllo sul livello giocatore richiesto
-            if (CurrentPlayerLevel < upgrade.requiredPlayerLevel) return false;
-
-            // Aggiungi controllo sui prerequisiti
+            if (upgrade == null)
+            { // Added braces
+                return false;
+            }
+            int actualCost = GetXpCostForUpgrade(upgrade);
+            if (CurrentPlayerLevel < upgrade.requiredPlayerLevel)
+            { // Added braces
+                return false;
+            }
             if (upgrade.prerequisites != null)
             {
-                foreach (var prereq in upgrade.prerequisites)
+                foreach (var prereq in upgrade.prerequisites) // var è ok qui
                 {
-                    if (prereq == null) continue;
-                    // Assumiamo che un prerequisito debba essere almeno a livello 1 (cioè acquistato una volta)
-                    if (GetUpgradeLevel(prereq.upgradeID) < 1) return false;
+                    if (prereq == null)
+                    { // Added braces
+                        continue;
+                    }
+                    if (GetUpgradeLevel(prereq.upgradeID) < 1)
+                    { // Added braces
+                        return false;
+                    }
                 }
             }
-
-            return CurrentXP >= upgrade.xpCost && GetUpgradeLevel(upgrade.upgradeID) < upgrade.maxLevel;
+            return CurrentXP >= actualCost && GetUpgradeLevel(upgrade.upgradeID) < upgrade.maxLevel;
         }
 
         public bool PurchaseUpgrade(UpgradeData upgrade)
         {
-            if (upgrade == null)
+            if (upgrade == null || string.IsNullOrEmpty(upgrade.upgradeID))
             {
-                Debug.LogWarning("ProgressManager: Tentativo di acquisto di un upgrade nullo.");
+                Debug.LogWarning("ProgressManager: Tentativo di acquisto di un upgrade nullo o con ID non valido.");
                 return false;
             }
-            if (!CanAffordUpgrade(upgrade))
+            int actualCost = GetXpCostForUpgrade(upgrade);
+
+            if (CurrentXP < actualCost) { Debug.LogWarning($"ProgressManager: XP insufficienti per '{upgrade.upgradeName}'. Richiesti: {actualCost}, Posseduti: {CurrentXP}"); return false; }
+            if (CurrentPlayerLevel < upgrade.requiredPlayerLevel) { Debug.LogWarning($"ProgressManager: Livello giocatore insuff. per '{upgrade.upgradeName}'. Richiesto: {upgrade.requiredPlayerLevel}, Attuale: {CurrentPlayerLevel}"); return false; }
+            if (GetUpgradeLevel(upgrade.upgradeID) >= upgrade.maxLevel) { Debug.LogWarning($"ProgressManager: Upgrade '{upgrade.upgradeName}' già al livello massimo."); return false; }
+            if (upgrade.prerequisites != null)
             {
-                Debug.LogWarning($"ProgressManager: Impossibile acquistare l'upgrade '{upgrade.upgradeName}'. Requisiti non soddisfatti o fondi/livello insufficienti. Costo: {upgrade.xpCost} XP, Posseduti: {CurrentXP} XP, Livello Giocatore Richiesto: {upgrade.requiredPlayerLevel}, Livello Giocatore Attuale: {CurrentPlayerLevel}, Livello Upgrade Acquistato: {GetUpgradeLevel(upgrade.upgradeID)}/{upgrade.maxLevel}");
-                return false;
+                foreach (var prereq in upgrade.prerequisites) // var è ok qui
+                {
+                    if (prereq == null)
+                    { // Added braces
+                        continue;
+                    }
+                    if (GetUpgradeLevel(prereq.upgradeID) < 1)
+                    {
+                         Debug.LogWarning($"ProgressManager: Prerequisito '{prereq.upgradeName}' per '{upgrade.upgradeName}' non soddisfatto.");
+                        return false;
+                    }
+                }
             }
 
-            CurrentXP -= upgrade.xpCost;
+            CurrentXP -= actualCost;
             int currentLevel = GetUpgradeLevel(upgrade.upgradeID);
-            purchasedUpgradeLevels[upgrade.upgradeID] = currentLevel + 1;
-
-            Debug.Log($"ProgressManager: Upgrade '{upgrade.upgradeName}' acquistato (Nuovo Livello {currentLevel + 1}). XP rimanenti: {CurrentXP}");
+            int newLevel = currentLevel + 1;
+            _purchasedUpgradeLevels[upgrade.upgradeID] = newLevel; // Used prefixed
+            Debug.Log($"ProgressManager: Upgrade '{upgrade.upgradeName}' acquistato (Nuovo Livello {newLevel}). Costo: {actualCost}. XP rimanenti: {CurrentXP}");
             SaveProgress();
             return true;
         }
 
         public int GetUpgradeLevel(string upgradeID)
         {
-            if (string.IsNullOrEmpty(upgradeID)) return 0;
-            purchasedUpgradeLevels.TryGetValue(upgradeID, out int level);
+            if (string.IsNullOrEmpty(upgradeID))
+            { // Added braces
+                return 0;
+            }
+            _purchasedUpgradeLevels.TryGetValue(upgradeID, out int level); // Used prefixed
             return level;
         }
 
         public float GetStatValue(StatType stat, float baseValue)
         {
             float modifiedValue = baseValue;
-            // NOTA: Questa implementazione è un placeholder. Per funzionare correttamente,
-            // ProgressManager dovrebbe avere accesso a una lista di tutti gli UpgradeData disponibili
-            // (es. caricati da Resources/ScriptableObjects) per poterli ciclare e applicare.
-            // Il codice commentato sotto è un esempio concettuale di come potrebbe funzionare.
-
-            /*
-            if (allGameUpgrades == null) {
-                // Carica tutti gli UpgradeData da Resources/Settings/UpgradeData (esempio)
-                // allGameUpgrades = new List<UpgradeData>(Resources.LoadAll<UpgradeData>("Settings/UpgradeData"));
-                // Debug.Log($"Caricati {allGameUpgrades.Count} upgrade totali dal sistema.");
+            if (_configDataService == null || !_configDataService.IsInitialized)
+            {
+                Debug.LogWarning($"ProgressManager.GetStatValue: IConfigDataService non disponibile o non inizializzato per {stat}. Restituito baseValue.");
+                return baseValue;
             }
 
-            foreach (var purchasedEntry in purchasedUpgradeLevels)
+            foreach (var purchasedEntry in _purchasedUpgradeLevels) // var è ok qui, Used prefixed
             {
-                string upgradeID = purchasedEntry.Key;
-                int purchasedLevel = purchasedEntry.Value;
-
-                // Trova l'UpgradeData corrispondente all'ID
-                UpgradeData ud = allGameUpgrades?.Find(u => u.upgradeID == upgradeID);
-
+                UpgradeData ud = _configDataService.GetUpgradeData(purchasedEntry.Key);
                 if (ud != null && ud.statToUpgrade == stat)
                 {
-                    for (int i = 0; i < purchasedLevel; i++) // Applica l'effetto per ogni livello acquistato
+                    for (int i = 0; i < purchasedEntry.Value; i++)
                     {
-                        if (ud.isPercentageBased)
-                        {
-                            modifiedValue *= (1f + ud.upgradeValue);
-                        }
-                        else
-                        {
-                            modifiedValue += ud.upgradeValue;
-                        }
+                        if (ud.isPercentageBased) { modifiedValue *= (1f + ud.upgradeValue); }
+                        else { modifiedValue += ud.upgradeValue; }
                     }
                 }
             }
-            */
-            // Se allGameUpgrades non è popolato o la logica sopra non è attiva:
-            if (purchasedUpgradeLevels.Count > 0) // Solo per indicare che la logica non è completa
-            {
-                 Debug.LogWarning($"ProgressManager.GetStatValue per {stat} è un placeholder e restituisce baseValue. L'applicazione degli upgrade acquistati ({purchasedUpgradeLevels.Count} tipi) va implementata qui, iterando sugli UpgradeData e applicando i loro effetti.");
-            }
-
             return modifiedValue;
+        }
+
+        public bool GrantFreeUpgrade(UpgradeData upgrade)
+        {
+            if (upgrade == null || string.IsNullOrEmpty(upgrade.upgradeID))
+            {
+                Debug.LogWarning("ProgressManager: Tentativo di concedere un UpgradeData nullo o con ID non valido.");
+                return false;
+            }
+            int currentLevel = GetUpgradeLevel(upgrade.upgradeID);
+            if (currentLevel >= upgrade.maxLevel)
+            {
+                Debug.LogWarning($"ProgressManager: Impossibile concedere l'upgrade gratuito '{upgrade.upgradeName}'. Già al livello massimo {currentLevel}/{upgrade.maxLevel}.");
+                return false;
+            }
+            _purchasedUpgradeLevels[upgrade.upgradeID] = currentLevel + 1; // Used prefixed
+            Debug.Log($"ProgressManager: Upgrade '{upgrade.upgradeName}' concesso gratuitamente (Nuovo Livello {currentLevel + 1}).");
+            SaveProgress();
+            return true;
         }
 
         public void SaveProgress()
         {
-            PlayerPrefs.SetInt(XP_SAVE_KEY, CurrentXP);
-            PlayerPrefs.SetInt(LEVEL_SAVE_KEY, CurrentPlayerLevel);
-            foreach (var entry in purchasedUpgradeLevels)
+            PlayerPrefs.SetInt(PlayerPrefsKeys.XP_SAVE_KEY, CurrentXP);
+            PlayerPrefs.SetInt(PlayerPrefsKeys.PLAYER_LEVEL_SAVE_KEY, CurrentPlayerLevel);
+            foreach (var entry in _purchasedUpgradeLevels) // var è ok qui, Used prefixed
             {
-                PlayerPrefs.SetInt(UPGRADES_SAVE_KEY_PREFIX + entry.Key, entry.Value);
+                PlayerPrefs.SetInt(PlayerPrefsKeys.UPGRADE_LEVEL_PREFIX + entry.Key, entry.Value);
             }
             PlayerPrefs.Save();
-            Debug.Log("ProgressManager: Progresso salvato in PlayerPrefs.");
         }
 
         public void LoadProgress()
         {
-            CurrentXP = PlayerPrefs.GetInt(XP_SAVE_KEY, 0);
-            CurrentPlayerLevel = PlayerPrefs.GetInt(LEVEL_SAVE_KEY, 1);
+            CurrentXP = PlayerPrefs.GetInt(PlayerPrefsKeys.XP_SAVE_KEY, 0);
+            CurrentPlayerLevel = PlayerPrefs.GetInt(PlayerPrefsKeys.PLAYER_LEVEL_SAVE_KEY, 1);
+            _purchasedUpgradeLevels.Clear(); // Used prefixed
 
-            purchasedUpgradeLevels.Clear();
-            // Per caricare correttamente i livelli degli upgrade, è necessario conoscere tutti gli ID possibili.
-            // Senza una lista di tutti gli UpgradeData (allGameUpgrades), non possiamo sapere quali chiavi cercare.
-            // Se `allGameUpgrades` fosse popolato (es. da Resources), si potrebbe fare:
-            /*
-            if (allGameUpgrades != null)
+            if (_configDataService != null && _configDataService.IsInitialized)
             {
-                foreach (UpgradeData ud in allGameUpgrades)
+                foreach (UpgradeData upgrade in _configDataService.GetAllUpgradeData())
                 {
-                    if (!string.IsNullOrEmpty(ud.upgradeID))
+                    if (upgrade == null || string.IsNullOrEmpty(upgrade.upgradeID))
+                    { // Added braces
+                        continue;
+                    }
+                    int level = PlayerPrefs.GetInt(PlayerPrefsKeys.UPGRADE_LEVEL_PREFIX + upgrade.upgradeID, 0);
+                    if (level > 0)
                     {
-                        int level = PlayerPrefs.GetInt(UPGRADES_SAVE_KEY_PREFIX + ud.upgradeID, 0);
-                        if (level > 0)
-                        {
-                            purchasedUpgradeLevels[ud.upgradeID] = level;
-                        }
+                        _purchasedUpgradeLevels[upgrade.upgradeID] = level; // Used prefixed
                     }
                 }
-                Debug.Log($"ProgressManager.LoadProgress: Caricati {purchasedUpgradeLevels.Count} livelli di upgrade da PlayerPrefs.");
+                Debug.Log($"ProgressManager.LoadProgress: Caricati {_purchasedUpgradeLevels.Count} livelli di upgrade da PlayerPrefs."); // Used prefixed
             }
             else
             {
-                Debug.LogWarning("ProgressManager.LoadProgress: `allGameUpgrades` non è popolato. Impossibile caricare i livelli degli upgrade.");
+                Debug.LogWarning("ProgressManager.LoadProgress: IConfigDataService non disponibile/inizializzato. I livelli degli upgrade non saranno caricati.");
             }
-            */
-             Debug.LogWarning("ProgressManager.LoadProgress: Caricamento livelli upgrade da PlayerPrefs non implementato completamente (richiede lista di tutti gli ID upgrade per iterare e caricare). I livelli degli upgrade verranno resettati a 0 finché non si popola `allGameUpgrades` e si completa la logica di caricamento.");
         }
 
         public void ResetProgress()
         {
-            PlayerPrefs.DeleteKey(XP_SAVE_KEY);
-            PlayerPrefs.DeleteKey(LEVEL_SAVE_KEY);
+            PlayerPrefs.DeleteKey(PlayerPrefsKeys.XP_SAVE_KEY);
+            PlayerPrefs.DeleteKey(PlayerPrefsKeys.PLAYER_LEVEL_SAVE_KEY);
 
-            // Anche qui, per cancellare tutti gli upgrade, servirebbe una lista di tutti gli ID
-            // o un meccanismo per trovare tutte le chiavi con UPGRADES_SAVE_KEY_PREFIX.
-            // PlayerPrefs non ha un "DeleteKeysWithPrefix", quindi è manuale.
-            /*
-            if (allGameUpgrades != null)
+            if (_configDataService != null && _configDataService.IsInitialized)
             {
-                foreach (UpgradeData ud in allGameUpgrades)
+                foreach (UpgradeData upgrade in _configDataService.GetAllUpgradeData())
                 {
-                    if (!string.IsNullOrEmpty(ud.upgradeID))
-                    {
-                        PlayerPrefs.DeleteKey(UPGRADES_SAVE_KEY_PREFIX + ud.upgradeID);
+                    if (upgrade == null || string.IsNullOrEmpty(upgrade.upgradeID))
+                    { // Added braces
+                        continue;
                     }
+                    PlayerPrefs.DeleteKey(PlayerPrefsKeys.UPGRADE_LEVEL_PREFIX + upgrade.upgradeID);
                 }
+                 Debug.Log("ProgressManager.ResetProgress: Cancellate chiavi PlayerPrefs per upgrade conosciuti.");
             }
-            */
-            Debug.LogWarning("ProgressManager.ResetProgress: Reset dei livelli di upgrade da PlayerPrefs non implementato completamente (richiede lista di tutti gli ID upgrade per iterare e cancellare).");
+            else
+            {
+                Debug.LogWarning("ProgressManager.ResetProgress: IConfigDataService non disponibile/inizializzato. Chiavi upgrade potrebbero non essere state cancellate.");
+            }
 
-            purchasedUpgradeLevels.Clear();
+            _purchasedUpgradeLevels.Clear(); // Used prefixed
             CurrentXP = 0;
             CurrentPlayerLevel = 1;
             PlayerPrefs.Save();
-            Debug.Log("ProgressManager: Progresso resettato. XP e Livello cancellati. Livelli upgrade in PlayerPrefs potrebbero persistere se non si itera su tutti gli ID per cancellarli.");
+            Debug.Log("ProgressManager: Progresso resettato.");
         }
     }
 }

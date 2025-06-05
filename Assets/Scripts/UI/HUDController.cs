@@ -1,33 +1,35 @@
 using UnityEngine;
-// using UnityEngine.UI; // Per UI.Text standard
-using TMPro; // Per TextMeshProUGUI - commentare se non si usa TMP
+using TMPro;
+using ChaosCosmos.Core.Constants; // Aggiunto per GameTags, non era nel read_files ma è usato
+using ChaosCosmos.Gameplay; // Aggiunto per PlanetController, non era nel read_files ma è usato
 
 namespace ChaosCosmos.UI
 {
     public class HUDController : MonoBehaviour
     {
         [Header("UI Elements")]
-        // Sostituire TextMeshProUGUI con Text se si usa UI.Text standard
         public TextMeshProUGUI massText;
         public TextMeshProUGUI timerText;
 
         [Header("Player Reference")]
-        public string playerTag = "Player"; // Tag per trovare il PlanetController del giocatore
+        private string _playerTag = GameTags.PLAYER_TAG; // Usato internamente
 
-        private ChaosCosmos.Gameplay.PlanetController playerPlanetController;
-        private float gameTimer = 0f;
+        private PlanetController _playerPlanetController; // Prefixed
+        private float _gameTimer = 0f; // Prefixed
 
         void Start()
         {
-            GameObject playerObject = GameObject.FindGameObjectWithTag(playerTag);
+            // playerTag è ora privato e usa la costante, non più settabile da Inspector.
+            // Se si volesse flessibilità da Inspector, si terrebbe public string playerTag e si userebbe quello.
+            GameObject playerObject = GameObject.FindGameObjectWithTag(_playerTag);
             if (playerObject != null)
             {
-                playerPlanetController = playerObject.GetComponent<ChaosCosmos.Gameplay.PlanetController>();
+                _playerPlanetController = playerObject.GetComponent<PlanetController>();
             }
 
-            if (playerPlanetController == null)
+            if (_playerPlanetController == null)
             {
-                Debug.LogError($"HUDController: PlanetController del giocatore (tag '{playerTag}') non trovato!");
+                Debug.LogError($"HUDController: PlanetController del giocatore (tag '{_playerTag}') non trovato!");
             }
 
             if (massText == null)
@@ -39,39 +41,37 @@ namespace ChaosCosmos.UI
                 Debug.LogError("HUDController: TimerText non assegnato!");
             }
 
-            // Inizializza il testo del timer
             UpdateTimerDisplay();
         }
 
         void Update()
         {
-            // Aggiorna la massa del giocatore
-            if (playerPlanetController != null && massText != null)
+            if (_playerPlanetController != null && massText != null)
             {
-                // Assumendo che PlanetController abbia GetCurrentMass() o currentMass sia public
-                // Fare riferimento alle modifiche suggerite per BotBrain
-                float currentMass = playerPlanetController.GetCurrentMass(); // Richiede GetCurrentMass() in PlanetController
-                massText.text = $"Massa: {currentMass:F1}"; // Formattato a una cifra decimale
+                float currentMass = _playerPlanetController.GetCurrentMass();
+                massText.text = $"Massa: {currentMass:F1}";
             }
-            else if (massText != null && playerPlanetController == null)
+            else if (massText != null && _playerPlanetController == null)
             {
                 massText.text = "Massa: N/A";
             }
 
-            // Aggiorna il timer di gioco
             if (timerText != null)
             {
-                gameTimer += Time.deltaTime;
+                _gameTimer += Time.deltaTime;
                 UpdateTimerDisplay();
             }
         }
 
         void UpdateTimerDisplay()
         {
-            if (timerText == null) return;
+            if (timerText == null)
+            { // Aggiunte graffe
+                return;
+            }
 
-            int minutes = Mathf.FloorToInt(gameTimer / 60F);
-            int seconds = Mathf.FloorToInt(gameTimer % 60F);
+            int minutes = Mathf.FloorToInt(_gameTimer / 60F);
+            int seconds = Mathf.FloorToInt(_gameTimer % 60F);
             timerText.text = $"Tempo: {minutes:00}:{seconds:00}";
         }
     }

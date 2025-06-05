@@ -14,6 +14,7 @@ namespace ChaosCosmos.Services.Progression
         bool PurchaseUpgrade(UpgradeData upgrade);
         int GetUpgradeLevel(string upgradeID); // Livello attuale di un upgrade specifico
         float GetStatValue(StatType stat, float baseValue); // Ottiene il valore di una stat considerando gli upgrade
+        bool GrantFreeUpgrade(UpgradeData upgrade); // Concede un upgrade senza costo XP
 
         void SaveProgress();
         void LoadProgress();

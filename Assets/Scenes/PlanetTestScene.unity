@@ -483,3 +483,263 @@ Transform:
 #        * Reset progress: `ServiceLocator.Get<IProgressService>().ResetProgress();`
 #    - Verify that PlayerPrefs are saved and loaded correctly between game sessions.
 #    - Check that stats in `PlanetController` reflect purchased upgrades after game restart and `GetStatValue` is implemented.
+#
+# INSTRUCTIONS FOR BATTLE PASS SYSTEM (PassManager, PassSeasonData, etc.):
+#
+# 1. Create RewardData Assets:
+#    - In the Project panel, navigate to `Assets/Settings/PassSystem/Rewards/`.
+#    - Right-click -> Create -> ChaosCosmos/Pass System/Reward Data.
+#    - Create a few examples:
+#        a. Name: `XpReward_100.asset`
+#           - Reward ID: `xp_100` (o lascia auto-generato)
+#           - Display Name: "100 XP"
+#           - Type: `XPCurrency`
+#           - Amount: 100
+#        b. Name: `SoftCurrency_50.asset`
+#           - Reward ID: `soft_curr_50`
+#           - Display Name: "50 Gemme" (esempio di valuta soft)
+#           - Type: `SoftCurrency`
+#           - Amount: 50
+#
+# 2. Create PassTierData Assets:
+#    - In `Assets/Settings/PassSystem/Seasons/` (o una sottocartella, es. `Season1Tiers/`).
+#    - Right-click -> Create -> ChaosCosmos/Pass System/Pass Tier Data.
+#    - Create a few tiers:
+#        a. Name: `S1_Tier1_Data.asset`
+#           - Tier Level: 1
+#           - XP To Unlock This Tier: 100 (XP necessari per sbloccare questo tier partendo dal precedente, o dall'inizio se è il primo)
+#           - Free Rewards: Aggiungi `XpReward_100.asset` alla lista.
+#           - Premium Rewards: Aggiungi `SoftCurrency_50.asset` alla lista.
+#        b. Name: `S1_Tier2_Data.asset`
+#           - Tier Level: 2
+#           - XP To Unlock This Tier: 150 (XP aggiuntivi dopo aver sbloccato il tier 1)
+#           - Free Rewards: (Aggiungi un'altra ricompensa)
+#           - Premium Rewards: (Aggiungi un'altra ricompensa)
+#
+# 3. Create PassSeasonData Asset:
+#    - In `Assets/Settings/PassSystem/Seasons/`, Right-click -> Create -> ChaosCosmos/Pass System/Pass Season Data.
+#    - Name it `Season1_Default_Settings.asset` (o un nome simile, ma quello usato in Bootstrapper è "Season1_Default").
+#    - Configure it:
+#        - Season ID: "Season1_Default" (deve corrispondere a quello caricato in Bootstrapper o modificare il path in Bootstrapper)
+#        - Season Name: "Stagione Inaugurale"
+#        - Tiers: Trascina i `PassTierData` assets creati (es. `S1_Tier1_Data.asset`, `S1_Tier2_Data.asset`) in questa lista, in ordine.
+#
+# 4. Place PassSeasonData in Resources Folder:
+#    - **Importante:** Per permettere a `Resources.Load()` in `Bootstrapper.cs` di trovare l'asset della stagione:
+#        - Assicurati che esista la cartella `Assets/Resources/PassSystem/Seasons/`. (Dovrebbe essere stata creata da uno step precedente).
+#        - Sposta o crea il tuo `PassSeasonData` asset (es. `Season1_Default_Settings.asset`) in questa cartella.
+#        - **Rinomina l'asset in questa cartella `Resources` esattamente come specificato in `Bootstrapper.cs`, ovvero "Season1_Default.asset"** (o cambia il nome nel codice di Bootstrapper).
+#
+# 5. Testing Pass System (Conceptual - senza UI dedicata per ora):
+#    - Avvia il gioco. `Bootstrapper` dovrebbe inizializzare `PassManager` con `Season1_Default.asset`.
+#    - Controlla la Console per i log di `PassManager` (inizializzazione, XP, tier).
+#    - Per testare, potresti temporaneamente aggiungere comandi o bottoni per:
+#        a. Aggiungere XP al pass: `ServiceLocator.Get<IPassService>().AddPassXP(50);`
+#           - Verifica che `CurrentPassXP` e `CurrentPassTier` si aggiornino.
+#        b. Acquistare il pass premium: `ServiceLocator.Get<IPassService>().PurchasePremiumPass();`
+#           - Verifica che `HasPremiumPass` diventi true.
+#        c. Richiedere una ricompensa:
+#           - Trova un `PassTierData` e un `RewardData` (es. `tier1.freeRewards[0]`).
+#           - Chiama `ServiceLocator.Get<IPassService>().ClaimReward(tier1.tierLevel, false, rewardData);`
+#           - Verifica che `IsRewardClaimed` restituisca true e che la ricompensa venga (concettualmente) data (es. XP giocatore aumenta se la ricompensa è XPCurrency e `_progressService.AddXP` è chiamato in `PassManager.ClaimReward`).
+#        d. Resettare il progresso del pass: `ServiceLocator.Get<IPassService>().ResetPassProgress();`
+#    - Controlla PlayerPrefs (se possibile con strumenti esterni o log) per vedere se i dati vengono salvati.
+#    - **Nota:** L'effettiva erogazione delle ricompense in `PassManager.ClaimReward` (es. aggiungere valuta, sbloccare skin) necessita di integrazione con altri sistemi (es. `ProgressManager` per XP, un futuro `InventoryManager` per skin/oggetti). Per ora, si logga principalmente l'azione.
+#
+# INSTRUCTIONS FOR REMOTE CONFIG SERVICE (Testing Simulation):
+#
+# 1. Understand the Simulation:
+#    - `RemoteConfigService.cs` simulates fetching key-value pairs from a server.
+#    - On initialization (in `Bootstrapper`), it populates a dictionary `_simulatedValues` with
+#      hardcoded defaults (e.g., "upgrade_basespeed_lvl_1_xpCost": "120").
+#    - Other services, like `ProgressManager`, can query these values.
+#
+# 2. How `ProgressManager` Uses Remote Config (Example - Upgrade Costs):
+#    - `ProgressManager.GetXpCostForUpgrade(UpgradeData upgrade)` now attempts to fetch the cost
+#      for an upgrade from `RemoteConfigService` first.
+#    - The key it uses is `$"upgrade_{upgrade.upgradeID}_xpCost"`.
+#    - If the key is found in Remote Config, that value is used.
+#    - If not found (or RC service not ready), it falls back to `upgrade.xpCost` from the ScriptableObject.
+#
+# 3. Testing Remote Config for Upgrade Costs:
+#    a. Create an `UpgradeData` Asset:
+#       - Go to `Assets/Settings/UpgradeData/`.
+#       - Create or use an existing `UpgradeData` asset (e.g., `SpeedUpgradeLvl1.asset`).
+#       - Note its `Upgrade ID` (e.g., if it's "basespeed_lvl_1" or a GUID).
+#       - Set its `XP Cost` in the Inspector to a known value (e.g., 100).
+#
+#    b. Check/Set Simulated Value in `RemoteConfigService.cs`:
+#       - Open `Assets/Scripts/Services/RemoteConfig/RemoteConfigService.cs`.
+#       - In the constructor, ensure there's an entry in `_simulatedValues` that matches your upgrade.
+#         For example, if `upgradeID` is "basespeed_lvl_1", add/verify:
+#         `_simulatedValues["upgrade_basespeed_lvl_1_xpCost"] = "120";` (Note: value is a string).
+#         If your `upgradeID` is a GUID, you'll need to copy that GUID into the key.
+#
+#    c. Test Purchase Logic:
+#       - Use debug commands or temporary UI to attempt to purchase this upgrade.
+#         (Requires `ProgressManager.PurchaseUpgrade(yourUpgradeDataAsset)`).
+#       - Check the console logs from `ProgressManager` and `RemoteConfigService`.
+#       - `RemoteConfigService` should log that it's returning the value "120" for the key.
+#       - `ProgressManager` should use 120 as the cost, not the 100 from the ScriptableObject.
+#
+#    d. Test Fallback:
+#       - In `RemoteConfigService.cs`, comment out or change the key for your test upgrade
+#         (e.g., `// _simulatedValues["upgrade_basespeed_lvl_1_xpCost"] = "120";`).
+#       - Restart the game.
+#       - Attempt to purchase the upgrade again.
+#       - `RemoteConfigService` should log that the key was not found and it's returning the default.
+#       - `ProgressManager` should now use the `xpCost` from the `SpeedUpgradeLvl1.asset` ScriptableObject (e.g., 100).
+#
+# 4. Testing Other Remote Config Values:
+#    - `RemoteConfigService` has other example values like "powerup_speedboost_duration", "arena_maxCollectibles".
+#    - To test these, you would modify the respective scripts (`SpeedBoostEffect.cs`, `ArenaManager.cs`)
+#      to fetch these values from `IRemoteConfigService` in their `Start` or `Awake` methods,
+#      similar to how `ProgressManager` fetches costs.
+#    - Example for `SpeedBoostEffect.cs` (in `Apply` or get duration at start):
+#      ```csharp
+#      // IRemoteConfigService rc = ServiceLocator.Get<IRemoteConfigService>();
+#      // if (rc != null && rc.IsReady) {
+#      //     this.duration = rc.GetFloat("powerup_speedboost_duration", this.duration);
+#      // }
+#      ```
+#
+# Notes:
+# - This simulation uses hardcoded values in `RemoteConfigService`. A real implementation
+#   would involve fetching these from a backend like Firebase Remote Config, Unity Remote Config, etc.
+# - The `Initialize` callback in `RemoteConfigService` and its registration in `Bootstrapper`
+#   are important for systems that need to wait for remote values to be "fetched" before using them.
+#   `ProgressManager`'s lazy-loading of the RC service helps mitigate some order-of-initialization issues.
+#
+# INSTRUCTIONS FOR ADS & IAP FACADES (Testing Simulation):
+#
+# 1. Understand the Simulation:
+#    - `AdsFacade.cs` and `IAPFacade.cs` simulate the behavior of Ads and IAP SDKs.
+#    - Ads loading and showing have simulated delays.
+#    - IAP purchases (specifically "Remove Ads") are stored in `PlayerPrefs`.
+#    - `AdsFacade` checks the "Remove Ads" status from `IAPFacade` (via PlayerPrefs) before showing interstitial ads.
+#
+# 2. Testing "Remove Ads" Flow:
+#    a. Initial State:
+#       - Run the game for the first time (or after clearing PlayerPrefs for "com.chaoscosmos.removeads").
+#       - In the console, you should see logs from `AdsFacade` indicating it's loading ads.
+#       - If you had a way to trigger an interstitial ad (e.g., via a debug button calling
+#         `ServiceLocator.Get<IAdsService>().ShowInterstitialAd(null);`), it should attempt to show (after a simulated load).
+#
+#    b. Simulate Purchasing "Remove Ads":
+#       - Add a temporary debug button or command that calls:
+#         ```csharp
+#         // IIAPService iap = ServiceLocator.Get<IIAPService>();
+#         // if (iap != null && iap.IsInitialized) {
+#         //     iap.PurchaseProduct(IAPFacade.ProductID_RemoveAds, (success, reason, msg) => {
+#         //         if (success) Debug.Log("TEST: Remove Ads purchased successfully!");
+#         //         else Debug.LogError($"TEST: Remove Ads purchase failed: {reason} - {msg}");
+#         //     });
+#         // } else { Debug.LogError("TEST: IAP Service not ready for purchase."); }
+#         ```
+#       - Click this button/run this command. You should see logs indicating the purchase was successful
+#         and PlayerPrefs was updated.
+#
+#    c. Verify Ads are Removed:
+#       - Restart the game (to ensure `AdsFacade` re-initializes and checks PlayerPrefs via `IAPFacade`).
+#       - Or, if `AdsFacade.CheckAdsRemovedStatus()` is made public or called before showing an ad,
+#         trigger an interstitial ad again.
+#       - The console logs from `AdsFacade` should now indicate that ads are removed, and no interstitial
+#         ad should be "shown". `ShowInterstitialAd` callback should indicate it wasn't shown (false).
+#       - Rewarded videos should still be showable as they are typically user-opt-in.
+#
+# 3. Testing Rewarded Video Ads:
+#    - Add a temporary debug button/command:
+#      ```csharp
+#      // IAdsService ads = ServiceLocator.Get<IAdsService>();
+#      // if (ads != null && ads.IsInitialized) {
+#      //     if (ads.IsRewardedVideoReady()) {
+#      //         ads.ShowRewardedVideo(status => Debug.Log($"TEST: Rewarded Ad completed with status: {status}"));
+#      //     } else { Debug.Log("TEST: Rewarded Ad not ready yet."); }
+#      // } else { Debug.LogError("TEST: Ads Service not ready."); }
+#      ```
+#    - Click this. It should simulate showing a rewarded ad and give a completion callback.
+#    - Try clicking again immediately; it should say "not ready" while the simulated reload happens.
+#
+# 4. Clearing "Remove Ads" for Retesting:
+#    - To retest the initial state, you'll need to clear the PlayerPrefs key. Add a debug command:
+#      ```csharp
+#      // PlayerPrefs.DeleteKey(IAPFacade.ProductID_RemoveAds);
+#      // PlayerPrefs.Save();
+#      // Debug.Log("TEST: 'Remove Ads' PlayerPref cleared.");
+#      // // Also reset in-memory state of IAPFacade if needed for immediate re-test without restart
+#      // IIAPService iap = ServiceLocator.Get<IIAPService>();
+#      // if (iap is IAPFacade iapFacadeInstance) { /* Potentially re-init or clear internal flags if IAPFacade caches this */ }
+#      // IAdsService ads = ServiceLocator.Get<IAdsService>();
+#      // if (ads is AdsFacade adsFacadeInstance) { /* Potentially re-init or clear internal flags */ }
+#      ```
+#      A full game restart after deleting the key is the most reliable way to test the "first run" experience.
+#
+# Notes:
+# - The `DelayExecutor` helper class in `AdsFacade.cs` uses `StartCoroutine` on a temporary GameObject
+#   to simulate delays. This is a simple way to achieve it for a facade.
+# - These facades provide the necessary hooks (`IAdsService`, `IIAPService`) for a real Ads/IAP SDK
+#   integration in the future without needing to change the calling game logic significantly.
+#
+# INSTRUCTIONS FOR CONSENT MANAGEMENT SYSTEM (Testing Simulation):
+#
+# 1. Understand the Simulation:
+#    - `ConsentManager.cs` simulates GDPR and ATT (iOS) consent flows.
+#    - Choices are saved in `PlayerPrefs`.
+#    - `AnalyticsService.cs` now checks `IConsentService.HasGivenGDPRConsentForAnalytics()` before logging events.
+#    - `AdsFacade.cs` now checks `IConsentService.HasGivenGDPRConsentForPersonalizedAds()` (or potentially
+#      `CanTrackDeviceForAds()` which includes ATT) before loading/showing interstitial ads.
+#      Rewarded ads are generally shown regardless of this specific consent as they are user-opt-in.
+#    - `Bootstrapper.cs` now initializes `ConsentManager` first and other services (Ads, Analytics, etc.)
+#      in the `onFlowCompleted` callback of `ConsentManager.RequestConsentFlow()`.
+#
+# 2. Testing the Consent Flow:
+#    a. First Run (No PlayerPrefs Set):
+#       - Clear relevant PlayerPrefs keys: `ChaosCosmos_GDPRConsent`, `ChaosCosmos_ATTStatus`
+#         (or use `ServiceLocator.Get<IConsentService>().ResetConsentStatus();` via a debug command).
+#       - Start the game.
+#       - Observe Console Logs:
+#         - `ConsentManager` should log "Avvio flusso richiesta consensi...".
+#         - It will then log "[SIMULAZIONE POPUP GDPR]..."
+#         - After a short simulated delay: "Scelta GDPR simulata e salvata: Given".
+#         - If on (simulated) iOS: "[SIMULAZIONE POPUP ATT]..."
+#         - After another delay: "Scelta ATT simulata e salvata: Authorized".
+#         - "Flusso richiesta consensi completato."
+#         - Then, `Bootstrapper` will initialize other services. Ads/Analytics should log that they are
+#           proceeding with consent given.
+#
+#    b. Subsequent Runs:
+#       - Restart the game without clearing PlayerPrefs.
+#       - `ConsentManager` should log "Scelta GDPR già effettuata..." and "Scelta ATT già effettuata...".
+#       - The consent flow should complete quickly, and services should initialize respecting the saved consent.
+#
+# 3. Testing GDPR Denied for Analytics:
+#    a. Reset consent: `ServiceLocator.Get<IConsentService>().ResetConsentStatus();`
+#    b. Manually set GDPR to Denied (before or during the simulated flow via a debug method if you added one,
+#       or modify `SimulateDelayedGDPRChoice` in `ConsentManager.cs` to pass `GDPRConsentStatus.Denied`).
+#       A simpler way for testing is to add a temporary debug method in `ConsentManager` like:
+#       `public void DebugSetGDPR(GDPRConsentStatus status) { ForceSetGDPRConsent(status); }`
+#       Then call: `ServiceLocator.Get<IConsentService>().DebugSetGDPR(GDPRConsentStatus.Denied);`
+#       (This would need `ForceSetGDPRConsent` to be public).
+#       Alternatively, modify `SimulateDelayedGDPRChoice` to use `GDPRConsentStatus.Denied` temporarily.
+#    c. Trigger an analytics event (e.g., by starting a game or collecting a power-up).
+#    d. `AnalyticsService` should log "[Analytics] Consenso GDPR per Analytics non dato. Evento non inviato."
+#
+# 4. Testing GDPR Denied / ATT Denied for Ads:
+#    a. Reset consent.
+#    b. Simulate GDPR Denied (as above) OR simulate ATT Denied (e.g., modify `SimulateDelayedATTChoice`
+#       in `ConsentManager.cs` to pass `TrackingAuthorizationStatus.Denied` or use a debug method).
+#    c. Attempt to show an interstitial ad (e.g. via a debug command for `AdsFacade.ShowInterstitialAd`).
+#    d. `AdsFacade` should log that consent for personalized ads is not given, and the ad should not be "shown".
+#
+# 5. Testing "Remove Ads" with Consent:
+#    - Ensure GDPR/ATT allows ads first.
+#    - Purchase "Remove Ads" (see IAP testing instructions).
+#    - `AdsFacade` should respect "Remove Ads" regardless of GDPR/ATT (i.e., no ads if purchased).
+#
+# Notes:
+# - The delays in `ConsentManager` (`SimulateDelayedGDPRChoice`, `SimulateDelayedATTChoice`) are short (0.5s).
+#   These simulate user interaction time with native dialogs.
+# - The `DelayExecutor` class from `AdsFacade.cs` is assumed to be accessible by `ConsentManager.cs`
+#   as they should be in the same `ChaosCosmos.Services` assembly.
+# - This setup provides a good simulation of how consent affects Ad and Analytics services.
+#   Real SDKs would replace the simulated popups and PlayerPrefs logic.

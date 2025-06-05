@@ -1,5 +1,6 @@
 using UnityEngine;
-using ChaosCosmos.Core; // Per eventuali futuri riferimenti a servizi Core
+using ChaosCosmos.Core;
+using ChaosCosmos.Core.Constants;
 
 namespace ChaosCosmos.Gameplay
 {
@@ -8,24 +9,21 @@ namespace ChaosCosmos.Gameplay
     {
         [Header("Settings")]
         public float baseSpeed = 2f;
-        public PlanetGrowthData growthData; // Riferimento allo ScriptableObject
-        public ParticleSystem absorbVfx; // Sarà assegnato nell'editor
+        public PlanetGrowthData growthData;
+        public ParticleSystem absorbVfx;
 
-        private Rigidbody2D rb;
-        private float currentMass = 1f; // Massa iniziale
-        private float currentSpeedMultiplier = 1f; // Moltiplicatore di velocità per i power-up
-        // private Coroutine activeSpeedBoostCoroutine; // Commentato: la logica di gestione è cambiata
-
+        private Rigidbody2D _rb; // Prefixed
+        private float _currentMass = 1f; // Prefixed
+        public float CurrentMass => _currentMass; // Uses prefixed field
+        private float _currentSpeedMultiplier = 1f; // Prefixed
 
         void Awake()
         {
-            rb = GetComponent<Rigidbody2D>();
+            _rb = GetComponent<Rigidbody2D>(); // Used prefixed
             if (growthData == null)
-            {
+            { // Added braces
                 Debug.LogError("PlanetGrowthData non assegnato a PlanetController!");
-                // Potrebbe essere utile caricare un default o disabilitare il componente
             }
-            // Imposta la scala iniziale basata sulla massa iniziale
             UpdateScale();
         }
 
@@ -36,62 +34,48 @@ namespace ChaosCosmos.Gameplay
 
         void HandleInput()
         {
-            // Simula one-thumb drag con il mouse per test in editor
-            if (Input.GetMouseButton(0)) // Tasto sinistro del mouse premuto
+            if (Input.GetMouseButton(0))
             {
                 if (Camera.main == null)
-                {
+                { // Added braces
                     Debug.LogError("Main Camera non trovata nella scena. Assicurati che ci sia una Main Camera taggata correttamente.");
+                    SetMovementInput(Vector2.zero);
                     return;
                 }
                 Vector3 mouseScreenPosition = Input.mousePosition;
-                // mouseScreenPosition.z = Camera.main.nearClipPlane + 10; // Distanza arbitraria dalla camera
                 Vector3 worldPosition = Camera.main.ScreenToWorldPoint(mouseScreenPosition);
-                worldPosition.z = transform.position.z; // Mantiene la stessa Z del pianeta
+                worldPosition.z = transform.position.z;
 
                 Vector2 direction = (worldPosition - transform.position);
-
-                // Normalizza solo se la magnitudine è significativa per evitare movimenti a zero
-                if (direction.sqrMagnitude > 0.01f)
-                {
-                   // MODIFICA QUI: Aggiunto * currentSpeedMultiplier
-                   rb.velocity = direction.normalized * baseSpeed * SpeedModifier() * currentSpeedMultiplier;
-                }
-                else
-                {
-                   rb.velocity = Vector2.zero;
-                }
+                SetMovementInput(direction);
             }
             else
             {
-                rb.velocity = Vector2.zero;
+                SetMovementInput(Vector2.zero);
             }
         }
 
-        // OnTriggerEnter2D sarà espanso nel prossimo step per l'ingestione
         void OnTriggerEnter2D(Collider2D other)
         {
-                    if (other.CompareTag("Collectible")) // Assicurati che il tag esista nel progetto Unity
+            if (other.CompareTag(GameTags.COLLECTIBLE_TAG))
             {
-                        MassSource massSource = other.GetComponent<MassSource>();
-                        if (massSource != null)
-                        {
-                            AddMass(massSource.massValue); // Usa il metodo AddMass già implementato
+                MassSource massSource = other.GetComponent<MassSource>();
+                if (massSource != null)
+                {
+                    AddMass(massSource.massValue);
 
-                            if (absorbVfx != null)
-                            {
-                                // Opzionale: configurare la posizione dell'effetto o genitore
-                                // absorbVfx.transform.position = other.transform.position; // Esempio
-                                absorbVfx.Play();
-                            }
+                    if (absorbVfx != null)
+                    { // Added braces
+                        absorbVfx.Play();
+                    }
 
-                            Destroy(other.gameObject);
-                            Debug.Log($"Ingerito: {other.name}, Massa Ottenuta: {massSource.massValue}. Nuova Massa Totale: {currentMass}");
-                        }
-                        else
-                        {
-                            Debug.LogWarning($"Oggetto {other.name} con tag 'Collectible' non ha il componente MassSource.");
-                        }
+                    Destroy(other.gameObject);
+                    // Debug.Log($"Ingerito: {other.name}, Massa Ottenuta: {massSource.massValue}. Nuova Massa Totale: {_currentMass}"); // Log verboso
+                }
+                else
+                {
+                    Debug.LogWarning($"Oggetto {other.name} con tag '{GameTags.COLLECTIBLE_TAG}' non ha il componente MassSource.");
+                }
             }
         }
 
@@ -99,72 +83,80 @@ namespace ChaosCosmos.Gameplay
         {
             if (growthData != null && growthData.massToRadiusCurve != null)
             {
-                float radius = growthData.massToRadiusCurve.Evaluate(currentMass);
+                float radius = growthData.massToRadiusCurve.Evaluate(_currentMass); // Used prefixed
                 transform.localScale = Vector3.one * radius;
             }
             else
             {
-                // Fallback o errore se growthData non è configurato
-                // Per ora, usa una scala di default o logga un errore più specifico.
-                // Se massToRadiusCurve è l'AnimationCurve diretta (come nell'esempio originale):
-                // float radius = massToRadius.Evaluate(currentMass); // Dove massToRadius è public AnimationCurve
-                // transform.localScale = Vector3.one * radius;
-                // Ma usando growthData è più pulito.
                 Debug.LogWarning("PlanetGrowthData o la sua curva non sono configurati. La scala non verrà aggiornata.");
             }
         }
 
-        float SpeedModifier()
+        private float SpeedModifier()
         {
-            // Formula come da specifiche: più grosso = più lento
-            // Lerp(maxSpeedFactor, minSpeedFactor, InverseLerp(minMass, maxMass, currentMass))
-            // Esempio: maxSpeedFactor = 1.4f, minSpeedFactor = 0.6f, minMass = 1, maxMass = 40
-            return Mathf.Lerp(1.4f, 0.6f, Mathf.InverseLerp(1f, 40f, currentMass));
+            return Mathf.Lerp(1.4f, 0.6f, Mathf.InverseLerp(1f, 40f, _currentMass)); // Used prefixed
         }
 
-        // Metodo pubblico per aumentare la massa (sarà usato dal sistema di ingestione)
         public void AddMass(float massAmount)
         {
-            if (massAmount <= 0) return;
-            currentMass += massAmount;
-            UpdateScale(); // Aggiorna la scala dopo aver cambiato la massa
-            Debug.Log($"Massa aggiunta: {massAmount}. Nuova massa: {currentMass}");
+            if (massAmount <= 0)
+            { // Added braces
+                return;
+            }
+            _currentMass += massAmount; // Used prefixed
+            UpdateScale();
+            // Debug.Log($"Massa aggiunta: {massAmount}. Nuova massa: {_currentMass}"); // Log verboso
         }
 
-        // Nuovo metodo pubblico per applicare/rimuovere un moltiplicatore di velocità
         public void ApplySpeedMultiplier(float multiplier, bool apply)
         {
             if (apply)
             {
-                currentSpeedMultiplier *= multiplier;
-                Debug.Log($"Speed multiplier applicato: {multiplier}. Totale ora: {currentSpeedMultiplier}");
+                _currentSpeedMultiplier *= multiplier; // Used prefixed
+                // Debug.Log($"Speed multiplier applicato: {multiplier}. Totale ora: {_currentSpeedMultiplier}");
             }
-            else // Rimuove il moltiplicatore (dividendo per esso)
+            else
             {
-                if (multiplier != 0) // Evita divisione per zero
-                {
-                    currentSpeedMultiplier /= multiplier;
-                    Debug.Log($"Speed multiplier rimosso: {multiplier}. Totale ora: {currentSpeedMultiplier}");
+                if (multiplier != 0)
+                { // Added braces
+                    _currentSpeedMultiplier /= multiplier; // Used prefixed
+                    // Debug.Log($"Speed multiplier rimosso: {multiplier}. Totale ora: {_currentSpeedMultiplier}");
                 }
             }
-            // Assicurati che il moltiplicatore non scenda sotto un valore minimo sensato (es. 0.1f)
-            currentSpeedMultiplier = Mathf.Max(0.1f, currentSpeedMultiplier);
+            _currentSpeedMultiplier = Mathf.Max(0.1f, _currentSpeedMultiplier); // Used prefixed
         }
 
-        // Metodi Getter per BotBrain (aggiunti nel task precedente o da istruzioni)
         public float GetCurrentMass()
         {
-            return currentMass;
+            return _currentMass; // Used prefixed
         }
 
-        public float GetCurrentSpeedModifier()
+        public float GetCurrentSpeedModifierValue()
         {
-            // Questo metodo ora dovrebbe includere anche currentSpeedMultiplier se i bot devono beneficiarne/esserne affetti.
-            // Oppure BotBrain deve essere consapevole di currentSpeedMultiplier separatamente.
-            // Per ora, BotBrain usa SpeedModifier() che è basato sulla massa, e poi moltiplica per il suo currentSpeedMultiplier.
-            // Se SpeedModifier() è privato, BotBrain usa la sua logica.
-            // Questa implementazione di GetCurrentSpeedModifier restituisce solo il modificatore basato sulla massa.
             return SpeedModifier();
+        }
+
+        public void SetMovementInput(Vector2 inputDirection)
+        {
+            if (_rb == null) // Used prefixed
+            {
+                _rb = GetComponent<Rigidbody2D>(); // Used prefixed
+                if (_rb == null) // Used prefixed
+                { // Added braces
+                    Debug.LogError("PlanetController: Rigidbody2D non trovato su " + gameObject.name);
+                    return;
+                }
+            }
+
+            if (inputDirection.sqrMagnitude > 0.01f)
+            {
+                Vector2 effectiveDirection = inputDirection.normalized;
+                _rb.velocity = effectiveDirection * baseSpeed * GetCurrentSpeedModifierValue() * _currentSpeedMultiplier; // Used prefixed _rb and _currentSpeedMultiplier
+            }
+            else
+            {
+                _rb.velocity = Vector2.zero; // Used prefixed
+            }
         }
     }
 }

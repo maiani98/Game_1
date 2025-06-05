@@ -5,7 +5,7 @@ namespace ChaosCosmos.Core.Services
 {
     public static class ServiceLocator
     {
-        private static readonly Dictionary<Type, IService> services = new Dictionary<Type, IService>();
+        private static readonly Dictionary<Type, IService> _services = new Dictionary<Type, IService>();
 
         public static void Register<T>(T serviceInstance) where T : IService
         {
@@ -14,17 +14,17 @@ namespace ChaosCosmos.Core.Services
                 throw new ArgumentNullException(nameof(serviceInstance));
             }
 
-            if (services.ContainsKey(typeof(T)))
+            if (_services.ContainsKey(typeof(T)))
             {
                 throw new InvalidOperationException($"Service of type {typeof(T).Name} already registered.");
             }
 
-            services[typeof(T)] = serviceInstance;
+            _services[typeof(T)] = serviceInstance;
         }
 
         public static T Get<T>() where T : IService
         {
-            if (services.TryGetValue(typeof(T), out IService serviceInstance))
+            if (_services.TryGetValue(typeof(T), out IService serviceInstance))
             {
                 return (T)serviceInstance;
             }
@@ -34,17 +34,17 @@ namespace ChaosCosmos.Core.Services
 
         public static void Unregister<T>() where T : IService
         {
-            services.Remove(typeof(T));
+            _services.Remove(typeof(T));
         }
 
         public static void UnregisterAll()
         {
-            services.Clear();
+            _services.Clear();
         }
 
         public static bool IsRegistered<T>() where T : IService
         {
-            return services.ContainsKey(typeof(T));
+            return _services.ContainsKey(typeof(T));
         }
     }
 }

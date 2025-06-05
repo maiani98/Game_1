@@ -1,0 +1,65 @@
+name: Build Unity Android
+
+on:
+  push:
+    branches: [ main, develop ] # Trigger su push a main o develop
+    paths:
+      - 'Assets/**' # Solo se cambiano file in Assets
+      - 'Packages/**'
+      - 'ProjectSettings/**'
+  pull_request:
+    branches: [ main, develop ] # Trigger su PR verso main o develop
+    paths:
+      - 'Assets/**'
+      - 'Packages/**'
+      - 'ProjectSettings/**'
+  workflow_dispatch: # Permette l'avvio manuale
+
+jobs:
+  build_android:
+    name: Build Android APK & App Bundle
+    runs-on: ubuntu-latest # Usare un runner Linux per build Android
+    strategy:
+      matrix:
+        unityVersion: [ '2022.3.15f1' ] # Specifica la TUA versione di Unity LTS
+        targetPlatform: [ Android ]
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+        with:
+          lfs: true # Abilita Git LFS se usato per asset pesanti
+
+      - name: Cache Unity Library
+        uses: actions/cache@v3
+        with:
+          path: Library
+          key: Library-${{ matrix.targetPlatform }}-${{ hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**') }}
+          restore-keys: |
+            Library-${{ matrix.targetPlatform }}-
+
+      - name: Build Unity Project (Android)
+        uses: game-ci/unity-builder@v4 # Azione popolare per build Unity
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          # UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }} # Se si usa user/pass/serial
+          # UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+          # UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
+        with:
+          unityVersion: ${{ matrix.unityVersion }}
+          targetPlatform: ${{ matrix.targetPlatform }}
+          # buildName: ChaosCosmosAndroidBuild # Nome del file di output
+          # androidAppBundle: true # Imposta a true per generare .aab
+          # androidKeystoreName: keystore.keystore # Nome del file keystore (se presente nel repo o scaricato)
+          # androidKeystoreBase64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }} # Keystore codificato in Base64
+          # androidKeystorePass: ${{ secrets.ANDROID_KEYSTORE_PASS }}
+          # androidKeyaliasName: ${{ secrets.ANDROID_KEYALIAS_NAME }}
+          # androidKeyaliasPass: ${{ secrets.ANDROID_KEYALIAS_PASS }}
+          # customParameters: -myCustomBuildSetting value # Parametri custom per il builder
+          # chownBlockRecursive: true # Per permessi su Linux
+
+      - name: Upload Android Build Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: Build-Android-${{ matrix.unityVersion }}
+          path: build/${{ matrix.targetPlatform }} # Il path potrebbe variare a seconda dell'azione di build
+                                                  # game-ci/unity-builder di solito mette in build/<targetPlatform>

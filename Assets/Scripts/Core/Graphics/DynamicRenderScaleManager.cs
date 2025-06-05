@@ -11,14 +11,14 @@ namespace ChaosCosmos.Core.Graphics
         public float maxRenderScale = 1.0f;
         public float currentRenderScale = 1.0f;
 
-        private UniversalRenderPipelineAsset urpAsset;
+        private UniversalRenderPipelineAsset _urpAsset;
 
         void Start()
         {
             // Tenta di ottenere l'asset URP corrente
-            urpAsset = GraphicsSettings.currentRenderPipeline as UniversalRenderPipelineAsset;
+            _urpAsset = GraphicsSettings.currentRenderPipeline as UniversalRenderPipelineAsset;
 
-            if (urpAsset == null)
+            if (_urpAsset == null)
             {
                 Debug.LogError("DynamicRenderScaleManager: UniversalRenderPipelineAsset non trovato. Assicurati che URP sia configurato correttamente.");
                 enabled = false; // Disabilita lo script se URP non è attivo
@@ -30,17 +30,17 @@ namespace ChaosCosmos.Core.Graphics
         // Metodo per impostare la scala di rendering
         public void SetRenderScale(float scale)
         {
-            if (urpAsset == null) return;
+            if (_urpAsset == null) return;
 
             currentRenderScale = Mathf.Clamp(scale, minRenderScale, maxRenderScale);
-            urpAsset.renderScale = currentRenderScale;
+            _urpAsset.renderScale = currentRenderScale; // Usa il campo rinominato
             Debug.Log($"DynamicRenderScaleManager: Render Scale impostato a {currentRenderScale}");
         }
 
         // Esempio di controllo manuale per il testing
         void Update()
         {
-            if (urpAsset == null) return;
+            if (_urpAsset == null) return;
 
             if (Input.GetKeyDown(KeyCode.PageUp))
             {

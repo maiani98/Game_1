@@ -1,0 +1,55 @@
+name: Build Unity iOS
+
+on:
+  push:
+    branches: [ main ] # Esempio: trigger solo su push a main per iOS
+    paths:
+      - 'Assets/**'
+      - 'Packages/**'
+      - 'ProjectSettings/**'
+  workflow_dispatch:
+
+jobs:
+  build_ios:
+    name: Build iOS Project (Xcode)
+    runs-on: macos-latest # Richiede un runner macOS per build iOS
+    strategy:
+      matrix:
+        unityVersion: [ '2022.3.15f1' ] # Specifica la TUA versione di Unity LTS
+        targetPlatform: [ iOS ]
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+        with:
+          lfs: true
+
+      - name: Cache Unity Library
+        uses: actions/cache@v3
+        with:
+          path: Library
+          key: Library-${{ matrix.targetPlatform }}-${{ hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**') }}
+          restore-keys: |
+            Library-${{ matrix.targetPlatform }}-
+
+      - name: Select Xcode version (Opzionale, se serve una specifica)
+        run: sudo xcode-select -s /Applications/Xcode_$(xcodebuild -version | grep Xcode | cut -d' ' -f2 | cut -d'.' -f1).app
+
+      - name: Build Unity Project (iOS)
+        uses: game-ci/unity-builder@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+        with:
+          unityVersion: ${{ matrix.unityVersion }}
+          targetPlatform: ${{ matrix.targetPlatform }}
+          # buildName: ChaosCosmosIOSBuild
+          # customParameters: -myCustomBuildSetting value
+          # chownBlockRecursive: true # Per permessi
+
+      - name: Upload iOS Build Artifact (Xcode Project)
+        uses: actions/upload-artifact@v3
+        with:
+          name: Build-iOS-XcodeProject-${{ matrix.unityVersion }}
+          path: build/${{ matrix.targetPlatform }}
+          # Per iOS, l'output di unity-builder è un progetto Xcode.
+          # La compilazione dell'.ipa richiederebbe ulteriori step (es. xcodebuild, gestione certificati e profili)
+          # che sono complessi e spesso richiedono azioni specifiche o self-hosted runner con la toolchain corretta.

@@ -1,7 +1,10 @@
 {
     "name": "ChaosCosmos.Core",
     "rootNamespace": "ChaosCosmos.Core",
-    "references": [],
+    "references": [
+        "Unity.Addressables",
+        "Unity.ResourceManager"
+    ],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,

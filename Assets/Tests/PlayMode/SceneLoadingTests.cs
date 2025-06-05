@@ -3,6 +3,7 @@ using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
+using ChaosCosmos.Core.Constants; // Aggiunto using per SceneNames
 
 public class SceneLoadingTests
 {
@@ -10,21 +11,18 @@ public class SceneLoadingTests
     public IEnumerator SceneLoading_PlanetTestScene_LoadsAndHasPlanet()
     {
         // Carica la scena
-        SceneManager.LoadScene("PlanetTestScene"); // Assicurati che sia nelle Build Settings
+        SceneManager.LoadScene(SceneNames.GAMEPLAY_SCENE_PLACEHOLDER); // Usa SceneNames
 
         // Aspetta un frame per permettere alla scena di caricarsi e Start/Awake di essere chiamati
         yield return null;
 
         // Verifica che la scena caricata sia quella giusta
-        Assert.AreEqual("PlanetTestScene", SceneManager.GetActiveScene().name);
+        Assert.AreEqual(SceneNames.GAMEPLAY_SCENE_PLACEHOLDER, SceneManager.GetActiveScene().name); // Usa SceneNames
 
-        // Verifica che esista un GameObject con il PlanetController (assumendo che sia taggato "Player" o abbia un nome specifico)
-        // Per semplicità, cerchiamo un GameObject che abbia il PlanetController.
-        // In un test reale, si potrebbe cercare un tag o un nome specifico.
+        // Verifica che esista un GameObject con il PlanetController
         var planet = GameObject.FindObjectOfType<ChaosCosmos.Gameplay.PlanetController>();
-        Assert.IsNotNull(planet, "PlanetController non trovato nella scena PlanetTestScene.");
+        Assert.IsNotNull(planet, "PlanetController non trovato nella scena " + SceneNames.GAMEPLAY_SCENE_PLACEHOLDER);
 
-        // Ulteriori asserzioni potrebbero verificare lo stato iniziale del pianeta, se necessario.
         yield return null;
     }
 }

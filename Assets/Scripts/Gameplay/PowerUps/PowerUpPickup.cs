@@ -2,7 +2,8 @@ using UnityEngine;
 using ChaosCosmos.Core.Services; // Per ServiceLocator
 using ChaosCosmos.Services.Analytics; // Per IAnalyticsService
 using System.Collections.Generic; // Per Dictionary
-using ChaosCosmos.Gameplay; // Per PlanetController (se non già visibile per namespace)
+using ChaosCosmos.Gameplay; // Per PlanetController
+using ChaosCosmos.Services.RemoteConfig; // Aggiunto per IRemoteConfigService
 
 namespace ChaosCosmos.Gameplay.PowerUps
 {
@@ -29,7 +30,16 @@ namespace ChaosCosmos.Gameplay.PowerUps
             if (planet != null)
             {
                 // Applica l'effetto al pianeta
-                powerUpEffect.Apply(planet);
+                // powerUpEffect.Apply(planet); // Vecchia chiamata
+
+                IRemoteConfigService rcService = null;
+                if (ServiceLocator.IsRegistered<IRemoteConfigService>())
+                {
+                    rcService = ServiceLocator.Get<IRemoteConfigService>();
+                }
+                // Passa rcService (può essere null se non registrato o non pronto, Apply dovrebbe gestirlo)
+                powerUpEffect.Apply(planet, rcService); // Nuova chiamata
+
 
                 IAnalyticsService analytics = ServiceLocator.Get<IAnalyticsService>();
                 if (analytics != null)
