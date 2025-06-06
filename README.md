@@ -8,6 +8,13 @@ Questo progetto è un gioco sviluppato con **Unity 2022.3 LTS**. Per aprirlo è 
 3. Carica la scena iniziale da `Assets/Scenes` (ad esempio `BootScene` o `MainMenuScene`).
 4. Premi **Play** per avviare il gioco nell'Editor.
 
+## Integrazione API
+Il `Bootstrapper` registra automaticamente `ApiService`, un wrapper semplice per
+effettuare richieste HTTP al backend. Per impostazione predefinita utilizza
+`https://api.example.com` come base URL. Puoi recuperare l'istanza tramite
+`ServiceLocator.Get<IApiService>()` e chiamare i metodi `GetAsync` o `PostAsync`
+per comunicare con il tuo server.
+
 ## Documentazione e Testing
 Nella cartella `docs/testing` sono presenti risorse utili:
 - `GoldenRunScenario.md` illustra uno scenario di gameplay di 120 secondi per verifiche di performance e QA.

@@ -15,6 +15,7 @@ using ChaosCosmos.Gameplay.LiveOps;
 using ChaosCosmos.Services.Notifications;
 using ChaosCosmos.Services.GameManagement;
 using ChaosCosmos.Services.Tutorial; // Aggiunto using per Tutorial
+using ChaosCosmos.Services.Api; // Nuovo servizio per le chiamate backend
 using ChaosCosmos.Core.Constants;
 using System;
 
@@ -23,6 +24,7 @@ namespace ChaosCosmos.Core
     public class Bootstrapper : MonoBehaviour
     {
         public string nextSceneName = SceneNames.LOBBY_SCENE; // Ora MAIN_MENU_SCENE
+        private const string DefaultApiBaseUrl = "https://api.example.com"; // Base URL di esempio
 
         void Start()
         {
@@ -97,6 +99,13 @@ namespace ChaosCosmos.Core
                 Debug.LogError("Bootstrapper: ConfigDataService o RemoteConfigService non pronti. Impossibile inizializzare alcuni servizi di gameplay.");
                 // Non chiamare LoadNextScene qui, aspetta che tutti i rami di init finiscano.
                 // LoadNextScene verrà chiamato alla fine di questa catena di inizializzazione.
+            }
+
+            if (!ServiceLocator.IsRegistered<IApiService>())
+            {
+                ApiService apiInstance = new ApiService(DefaultApiBaseUrl);
+                ServiceLocator.Register<IApiService>(apiInstance);
+                Debug.Log("Bootstrapper: ApiService registrato.");
             }
 
             if (!ServiceLocator.IsRegistered<IProgressService>())
