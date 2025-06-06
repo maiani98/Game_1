@@ -25,6 +25,10 @@ namespace ChaosCosmos.Core
     {
         public string nextSceneName = SceneNames.LOBBY_SCENE; // Ora MAIN_MENU_SCENE
         private const string DefaultApiBaseUrl = "https://api.example.com"; // Base URL di esempio
+        // Placeholder IDs for Unity Ads. Replace with your own IDs from the Unity dashboard.
+        private const string UnityAdsAndroidGameId = "1234567";
+        private const string UnityAdsIosGameId = "7654321";
+        private const bool UnityAdsTestMode = true;
 
         void Start()
         {
@@ -198,12 +202,12 @@ namespace ChaosCosmos.Core
         {
             if (!ServiceLocator.IsRegistered<IIAPService>())
             {
-                IAPFacade iapInstance = new IAPFacade();
+                UnityIAPService iapInstance = new UnityIAPService();
                 ServiceLocator.Register<IIAPService>(iapInstance);
-                Debug.Log("Bootstrapper: IAPFacade registrato.");
+                Debug.Log("Bootstrapper: UnityIAPService registrato.");
                 iapInstance.Initialize((iapSuccess, message) => {
-                    if(iapSuccess) Debug.Log($"Bootstrapper: IAPFacade inizializzato: {message}");
-                    else Debug.LogError($"Bootstrapper: Fallimento IAPFacade init: {message}");
+                    if(iapSuccess) Debug.Log($"Bootstrapper: UnityIAPService inizializzato: {message}");
+                    else Debug.LogError($"Bootstrapper: Fallimento UnityIAPService init: {message}");
                     InitializeAdsServiceOnlyAndLoadScene();
                 });
             }
@@ -217,9 +221,9 @@ namespace ChaosCosmos.Core
                 IIAPService iapService = ServiceLocator.Get<IIAPService>();
                 if (iapService == null) { Debug.LogError("Bootstrapper: IIAPService non registrato prima di IAdsService!");}
 
-                AdsFacade adsInstance = new AdsFacade(iapService);
+                UnityAdsService adsInstance = new UnityAdsService(UnityAdsAndroidGameId, UnityAdsIosGameId, UnityAdsTestMode);
                 ServiceLocator.Register<IAdsService>(adsInstance);
-                Debug.Log("Bootstrapper: AdsFacade registrato.");
+                Debug.Log("Bootstrapper: UnityAdsService registrato.");
                 adsInstance.Initialize();
             }
 
@@ -234,9 +238,9 @@ namespace ChaosCosmos.Core
                 // AnalyticsService potrebbe dipendere da IConsentService, che è già registrato
                 // IConsentService consentServ = ServiceLocator.Get<IConsentService>();
                 // AnalyticsService analyticsInstance = new AnalyticsService(consentServ); // Se il costruttore lo prendesse
-                AnalyticsService analyticsInstance = new AnalyticsService();
+                UnityAnalyticsService analyticsInstance = new UnityAnalyticsService();
                 ServiceLocator.Register<IAnalyticsService>(analyticsInstance);
-                Debug.Log("Bootstrapper: AnalyticsService registrato.");
+                Debug.Log("Bootstrapper: UnityAnalyticsService registrato.");
             }
         }
 

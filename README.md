@@ -15,6 +15,18 @@ effettuare richieste HTTP al backend. Per impostazione predefinita utilizza
 `ServiceLocator.Get<IApiService>()` e chiamare i metodi `GetAsync` o `PostAsync`
 per comunicare con il tuo server.
 
+## Integrazione SDK
+Il progetto include implementazioni pronte per **Unity Ads**, **Unity IAP** e **Unity Analytics**.
+Assicurati di installare i relativi pacchetti tramite il *Package Manager* prima di compilare:
+
+- `Advertisement` (Unity Ads)
+- `Unity Purchasing` (Unity IAP)
+- `Unity Services Core` e `Unity Analytics`
+
+Nel file `Bootstrapper` i servizi vengono registrati automaticamente tramite le classi
+`UnityAdsService`, `UnityIAPService` e `UnityAnalyticsService`. Aggiorna gli ID di gioco per
+Unity Ads direttamente nel `Bootstrapper` o tramite *Remote Config* prima di rilasciare.
+
 ## Documentazione e Testing
 Nella cartella `docs/testing` sono presenti risorse utili:
 - `GoldenRunScenario.md` illustra uno scenario di gameplay di 120 secondi per verifiche di performance e QA.

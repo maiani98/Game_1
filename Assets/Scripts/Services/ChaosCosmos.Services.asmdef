@@ -2,7 +2,11 @@
     "name": "ChaosCosmos.Services",
     "rootNamespace": "ChaosCosmos.Services",
     "references": [
-        "ChaosCosmos.Core"
+        "ChaosCosmos.Core",
+        "UnityEngine.Advertisements",
+        "UnityEngine.Purchasing",
+        "Unity.Services.Core",
+        "Unity.Services.Analytics"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
