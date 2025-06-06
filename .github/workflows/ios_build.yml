@@ -15,7 +15,7 @@ jobs:
     runs-on: macos-latest # Richiede un runner macOS per build iOS
     strategy:
       matrix:
-        unityVersion: [ '2022.3.20f1' ] # Aggiornato alla versione Unity LTS più recente
+        unityVersion: [ '6000.1.6f1' ] # Aggiornato alla versione Unity 6.1
         targetPlatform: [ iOS ]
     steps:
       - name: Checkout Repository

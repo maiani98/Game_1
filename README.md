@@ -1,10 +1,10 @@
 # Chaos Cosmos.io
 
-Questo progetto è un gioco sviluppato con **Unity 2022.3 LTS**. Per aprirlo è consigliato utilizzare l'ultima versione disponibile della linea 2022.3 (es. 2022.3.20f1 o successiva) tramite Unity Hub.
+Questo progetto è un gioco sviluppato con **Unity 6.1**. Per aprirlo è consigliato utilizzare la versione `6000.1.6f1` tramite Unity Hub.
 
 ## Avvio rapido
 1. Clona il repository.
-2. Aggiungi la cartella del progetto in Unity Hub e seleziona la versione 2022.3 LTS installata.
+2. Aggiungi la cartella del progetto in Unity Hub e seleziona la versione 6.1 installata (es. `6000.1.6f1`).
 3. Carica la scena iniziale da `Assets/Scenes` (ad esempio `BootScene` o `MainMenuScene`).
 4. Premi **Play** per avviare il gioco nell'Editor.
 
