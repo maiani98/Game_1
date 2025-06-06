@@ -1,0 +1,7 @@
+{
+  "name": "chaos-cosmos",
+  "version": "1.0.0",
+  "scripts": {
+    "test": "echo \"No JS tests configured\""
+  }
+}

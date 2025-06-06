@@ -47,8 +47,7 @@ namespace ChaosCosmos.Tests.EditMode.Gameplay.AI
             _botBrain.stateChangeIntervalMin = 0.01f;
             _botBrain.stateChangeIntervalMax = 0.02f;
             _objectsToCleanup.Add(_botGO);
-            // _objectsToCleanup.Add(botGrowthData); // SO istanze sono pulite automaticamente da Unity nei test? Meglio espliciti.
-            if (botGrowthData != null) _objectsToCleanup.Add(botGrowthData as GameObject); // Non è un GO. Object.DestroyImmediate(botGrowthData) in TearDown.
+            // PlanetGrowthData è uno ScriptableObject: verrà distrutto in TearDown con DestroyImmediate.
 
 
             _playerGO = new GameObject("Test_Player");
