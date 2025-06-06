@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+#if UNITY_PURCHASING
 using UnityEngine.Purchasing;
+#endif
 
 namespace ChaosCosmos.Services.IAP
 {
@@ -9,7 +11,7 @@ namespace ChaosCosmos.Services.IAP
     /// Real implementation of <see cref="IIAPService"/> using Unity IAP.
     /// The Unity IAP package must be installed via the Package Manager.
     /// </summary>
-    public class UnityIAPService : IStoreListener, IIAPService
+public class UnityIAPService : IStoreListener, IIAPService
     {
         public bool IsInitialized { get; private set; }
         private IStoreController _controller;
@@ -126,4 +128,33 @@ namespace ChaosCosmos.Services.IAP
             _purchaseCallback?.Invoke(false, failureReason, product.transactionID);
         }
     }
+#else
+    /// <summary>
+    /// Fallback implementation used when the Unity Purchasing package is missing.
+    /// </summary>
+    public class UnityIAPService : IIAPService
+    {
+        public bool IsInitialized => false;
+
+        public void Initialize(Action<bool, string> onInitialized)
+        {
+            Debug.LogWarning("UnityIAPService: Unity Purchasing package not installed.");
+            onInitialized?.Invoke(false, "purchasing_not_available");
+        }
+
+        public ProductDetails GetProductDetails(string productID) => null;
+
+        public void PurchaseProduct(string productID, Action<bool, PurchaseFailureReason, string> onPurchaseCompleted)
+        {
+            onPurchaseCompleted?.Invoke(false, PurchaseFailureReason.ServiceUnavailable, "purchasing_not_available");
+        }
+
+        public void RestorePurchases(Action<bool, string> onRestoreCompleted)
+        {
+            onRestoreCompleted?.Invoke(false, "purchasing_not_available");
+        }
+
+        public bool HasUserPurchased(string productID) => false;
+    }
+#endif
 }

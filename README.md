@@ -23,6 +23,8 @@ Assicurati di installare i relativi pacchetti tramite il *Package Manager* prima
 - `Unity Purchasing` (Unity IAP)
 - `Unity Services Core` e `Unity Analytics`
 
+Le classi dei servizi sono racchiuse da direttive di compilazione; se i pacchetti non sono installati verranno usate implementazioni di fallback che registrano avvisi nei log.
+
 Nel file `Bootstrapper` i servizi vengono registrati automaticamente tramite le classi
 `UnityAdsService`, `UnityIAPService` e `UnityAnalyticsService`. Aggiorna gli ID di gioco per
 Unity Ads direttamente nel `Bootstrapper` o tramite *Remote Config* prima di rilasciare.

@@ -1,6 +1,8 @@
 using System;
 using UnityEngine;
+#if UNITY_ADS
 using UnityEngine.Advertisements;
+#endif
 
 namespace ChaosCosmos.Services.Ads
 {
@@ -9,7 +11,7 @@ namespace ChaosCosmos.Services.Ads
     /// Requires the "Advertisement" package to be installed via the
     /// Unity Package Manager.
     /// </summary>
-    public class UnityAdsService : IAdsService, IUnityAdsInitializationListener, IUnityAdsLoadListener, IUnityAdsShowListener
+public class UnityAdsService : IAdsService, IUnityAdsInitializationListener, IUnityAdsLoadListener, IUnityAdsShowListener
     {
         private const string RewardedPlacement = "rewardedVideo";
         private const string InterstitialPlacement = "interstitial";
@@ -156,4 +158,37 @@ namespace ChaosCosmos.Services.Ads
             }
         }
     }
+#else
+    /// <summary>
+    /// Fallback implementation used when the Unity Ads package is missing.
+    /// It logs warnings but allows the project to compile.
+    /// </summary>
+    public class UnityAdsService : IAdsService
+    {
+        public bool IsInitialized => false;
+
+        public UnityAdsService(string androidGameId, string iosGameId, bool testMode = true) { }
+
+        public void Initialize()
+        {
+            Debug.LogWarning("UnityAdsService: Unity Ads package not installed.");
+        }
+
+        public bool IsRewardedVideoReady() => false;
+
+        public void ShowRewardedVideo(Action<AdCompletionStatus> onAdCompleted)
+        {
+            Debug.LogWarning("UnityAdsService: Rewarded video not available.");
+            onAdCompleted?.Invoke(AdCompletionStatus.Failed);
+        }
+
+        public bool IsInterstitialAdReady() => false;
+
+        public void ShowInterstitialAd(Action<bool> onAdClosed)
+        {
+            Debug.LogWarning("UnityAdsService: Interstitial ad not available.");
+            onAdClosed?.Invoke(false);
+        }
+    }
+#endif
 }
