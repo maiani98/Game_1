@@ -78,7 +78,9 @@ namespace ChaosCosmos.Gameplay
 
             GameObject newCollectible = Instantiate(collectiblePrefab, spawnPosition, Quaternion.identity, transform);
             _spawnedCollectibles.Add(newCollectible);
-            // Debug.Log($"ArenaManager: Collezionabile spawnato a {spawnPosition}"); // Log un po' verboso per ogni spawn
+            // TODO_SFX: Collectible_Spawned_In_World (suono leggero per lo spawn)
+            // TODO_VFX: Collectible_Spawn_Effect_at_spawnPosition (es. un fade-in con particelle)
+            // Debug.Log($"ArenaManager: Collezionabile spawnato a {spawnPosition}");
         }
 
         private int CountActiveCollectibles()

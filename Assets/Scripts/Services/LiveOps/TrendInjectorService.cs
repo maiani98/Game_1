@@ -3,7 +3,7 @@ using ChaosCosmos.Core.Services;
 using ChaosCosmos.Services.RemoteConfig;
 using ChaosCosmos.Core.Constants;
 using ChaosCosmos.Core.AssetManagement;
-// using UnityEngine.ResourceManagement.AsyncOperations; // Rimosso
+// using UnityEngine.ResourceManagement.AsyncOperations; // Rimosso perché non usato direttamente qui
 
 namespace ChaosCosmos.Services.LiveOps
 {
@@ -12,10 +12,10 @@ namespace ChaosCosmos.Services.LiveOps
         public bool IsInitialized { get; private set; }
         private IRemoteConfigService _remoteConfigService;
 
-        // Chiavi esempio per Remote Config (meglio se definite in GameConstants.RemoteConfigKeyPatterns)
-        private const string RC_KEY_TREND_ARENA_THEME = "trend_arenaTheme";
-        private const string RC_KEY_TREND_COLLECTIBLE_X_SPAWN_MULT = "trend_collectibleX_spawnMultiplier";
-
+        // Chiavi per Remote Config
+        private const string RC_ARENA_THEME_KEY = "trend_generic_arenaTheme"; // Rinominato per chiarezza vs bioma
+        private const string RC_ACTIVE_BIOME_ID_KEY = "trend_active_biome_id";
+        // private const string RC_COLLECTIBLE_X_SPAWN_MULT_KEY = "trend_collectibleX_spawnMultiplier"; // Esempio, potrebbe essere gestito per bioma
 
         public TrendInjectorService(IRemoteConfigService remoteConfigService)
         {
@@ -29,58 +29,82 @@ namespace ChaosCosmos.Services.LiveOps
         public void Initialize()
         {
             if (_remoteConfigService == null || !_remoteConfigService.IsReady)
-            { // Aggiunte graffe
+            {
                 Debug.LogError("TrendInjectorService: Impossibile inizializzare, IRemoteConfigService non pronto.");
                 return;
             }
 
             ApplyCurrentTrends();
             IsInitialized = true;
-            Debug.Log("TrendInjectorService: Inizializzato e trend applicati (simulato).");
+            Debug.Log("TrendInjectorService: Inizializzato e trend/biomi (simulati) applicati.");
         }
 
         private void ApplyCurrentTrends()
         {
-            // Esempio: Leggi un tema per l'arena
-            // La prima riga con RemoteConfigKeyPatterns.GetArenaMaxCollectiblesKey() è stata rimossa perché errata per il tema.
-            string currentTheme = _remoteConfigService.GetString(RC_KEY_TREND_ARENA_THEME, "default_theme");
-            Debug.Log($"[TrendInjector] Tema Arena Corrente (da RC '{RC_KEY_TREND_ARENA_THEME}'): {currentTheme}. (TODO: Applicare al sistema di theming visivo)");
+            // Leggi il bioma attivo
+            string activeBiomeID = _remoteConfigService.GetString(RC_ACTIVE_BIOME_ID_KEY, "default_biome");
+            Debug.Log($"[TrendInjector] Bioma Attivo ID (da RC '{RC_ACTIVE_BIOME_ID_KEY}'): {activeBiomeID}");
 
-            // Esempio: Leggi un moltiplicatore di spawn per un tipo di collezionabile "TypeX"
-            float collectibleXMultiplier = _remoteConfigService.GetFloat(RC_KEY_TREND_COLLECTIBLE_X_SPAWN_MULT, 1.0f);
-            Debug.Log($"[TrendInjector] Moltiplicatore Spawn Collectible 'X' (da RC '{RC_KEY_TREND_COLLECTIBLE_X_SPAWN_MULT}'): {collectibleXMultiplier}. (TODO: Passare ad ArenaManager)");
+            // Applica logica specifica del bioma o default
+            switch (activeBiomeID)
+            {
+                case "asteroid_field_dense":
+                    Debug.Log("[TrendInjector] SIMULAZIONE: Attivato Bioma 'Campo di Asteroidi Denso'.");
+                    Debug.Log("[TrendInjector] -> Modificherebbe: CollectibleSpawnRateMultiplier_Small = 1.5 (es. via RemoteConfig: " + _remoteConfigService.GetFloat("trend_asteroid_collectible_mult", 1.0f) + ")");
+                    Debug.Log("[TrendInjector] -> Modificherebbe: PowerUpSpawnRateMultiplier = 0.5 (es. via RemoteConfig: " + _remoteConfigService.GetFloat("trend_asteroid_powerup_mult", 1.0f) + ")");
+                    Debug.Log("[TrendInjector] -> Modificherebbe: BotBaseSpeedMultiplier = 0.8 (es. via RemoteConfig: " + _remoteConfigService.GetFloat("trend_asteroid_bot_speed_mult", 1.0f) + ")");
+                    LoadBiomeAssets("theme_asteroid_field_bg", "obstacle_asteroid_small");
+                    break;
+                case "electric_nebula":
+                    Debug.Log("[TrendInjector] SIMULAZIONE: Attivato Bioma 'Nebulosa Elettrica'.");
+                    Debug.Log("[TrendInjector] -> Modificherebbe: Hazard_ElectricZone_Active = true (es. via RemoteConfig: " + _remoteConfigService.GetBool("trend_nebula_hazard_active", false) + ")");
+                    Debug.Log("[TrendInjector] -> Modificherebbe: PowerUp_Shield_DurationMultiplier = 1.5 (es. via RemoteConfig: " + _remoteConfigService.GetFloat("trend_nebula_shield_mult", 1.0f) + ")");
+                    LoadBiomeAssets("theme_electric_nebula_vfx", "collectible_energy_orb");
+                    break;
+                case "ship_graveyard_ancient":
+                    Debug.Log("[TrendInjector] SIMULAZIONE: Attivato Bioma 'Cimitero Spaziale Antico'.");
+                    Debug.Log("[TrendInjector] -> Modificherebbe: SpecialCollectible_ShipDebris_Active = true (es. via RemoteConfig: " + _remoteConfigService.GetBool("trend_graveyard_debris_active", false) + ")");
+                    Debug.Log("[TrendInjector] -> Modificherebbe: BotTypeSpawnFocus = \"ScavengerBot\" (es. via RemoteConfig: " + _remoteConfigService.GetString("trend_graveyard_bot_focus", "default") + ")");
+                    LoadBiomeAssets("theme_ship_graveyard_debris", "collectible_scrap_metal");
+                    break;
+                case "default_biome":
+                default:
+                    Debug.Log($"[TrendInjector] Bioma di default o ID '{activeBiomeID}' non specificamente gestito. Applico tema generico se presente.");
+                    string genericTheme = _remoteConfigService.GetString(RC_ARENA_THEME_KEY, "default_theme_assets");
+                    Debug.Log($"[TrendInjector] Tema Arena Generico (da RC '{RC_ARENA_THEME_KEY}'): {genericTheme}. (TODO: Applicare al sistema di theming visivo)");
+                    if (genericTheme != "default_theme_assets") LoadBiomeAssets(genericTheme, null); // Carica solo il tema se definito
+                    break;
+            }
 
-            // Esempio con una chiave da GameConstants
+            // Esempio di lettura di un parametro di trend generico (già presente)
             int maxCollectibles = _remoteConfigService.GetInt(RemoteConfigKeyPatterns.GetArenaMaxCollectiblesKey(), 30);
             Debug.Log($"[TrendInjector] Max Collectibles (da RC '{RemoteConfigKeyPatterns.GetArenaMaxCollectiblesKey()}'): {maxCollectibles}. (TODO: Applicare ad ArenaManager)");
+        }
 
-            // Esempio di caricamento asset tramite Addressables se il tema è "halloween_theme"
-            if (currentTheme == "halloween_theme" && AddressableAssetLoader.Instance != null)
+        private void LoadBiomeAssets(string themeAssetKey, string specialCollectibleKey)
+        {
+            if (AddressableAssetLoader.Instance == null)
             {
-                string spriteAddress = "halloween_collectible_sprite";
-                AddressableAssetLoader.Instance.LoadAssetAsync<Sprite>(spriteAddress,
-                (loadedSprite) => {
-                    if (loadedSprite != null) // Aggiunte graffe
-                    {
-                        Debug.Log($"[TrendInjector] Sprite per Halloween caricato con successo: {loadedSprite.name} (da {spriteAddress})");
-                    }
-                },
-                (errorMsg) => {
-                     Debug.LogError($"[TrendInjector] Fallito caricamento sprite Halloween '{spriteAddress}': {errorMsg}");
-                });
+                Debug.LogWarning("[TrendInjector] AddressableAssetLoader.Instance è nullo. Impossibile caricare asset per il bioma.");
+                return;
+            }
 
-                string prefabAddress = "halloween_decoration_prefab";
-                AddressableAssetLoader.Instance.InstantiateGameObjectAsync(prefabAddress,
-                (loadedGO, handle) => {
-                    if (loadedGO != null) // Aggiunte graffe
-                    {
-                        Debug.Log($"[TrendInjector] Prefab decorazione Halloween istanziato: {loadedGO.name} (da {prefabAddress})");
-                    }
+            if (!string.IsNullOrEmpty(themeAssetKey))
+            {
+                AddressableAssetLoader.Instance.LoadAssetAsync<GameObject>(themeAssetKey, // Assumendo che il tema sia un prefab o simile
+                (loadedAsset) => {
+                    if (loadedAsset != null) Debug.Log($"[TrendInjector] Asset tema '{themeAssetKey}' caricato: {loadedAsset.name}. (TODO: Istanziare/Applicare)");
                 },
-                (errorMsg) => {
-                    Debug.LogError($"[TrendInjector] Fallita istanziazione prefab decorazione Halloween '{prefabAddress}': {errorMsg}");
-                }
-                );
+                (errorMsg) => Debug.LogError($"[TrendInjector] Fallito caricamento asset tema '{themeAssetKey}': {errorMsg}"));
+            }
+
+            if (!string.IsNullOrEmpty(specialCollectibleKey))
+            {
+                 AddressableAssetLoader.Instance.LoadAssetAsync<GameObject>(specialCollectibleKey, // Assumendo prefab per collezionabile
+                (loadedAsset) => {
+                    if (loadedAsset != null) Debug.Log($"[TrendInjector] Asset collezionabile speciale '{specialCollectibleKey}' caricato: {loadedAsset.name}. (TODO: Usare per spawn)");
+                },
+                (errorMsg) => Debug.LogError($"[TrendInjector] Fallito caricamento asset collezionabile speciale '{specialCollectibleKey}': {errorMsg}"));
             }
         }
     }

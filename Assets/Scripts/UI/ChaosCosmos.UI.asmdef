@@ -2,7 +2,11 @@
     "name": "ChaosCosmos.UI",
     "rootNamespace": "ChaosCosmos.UI",
     "references": [
-        "ChaosCosmos.Core"
+        "ChaosCosmos.Core",
+        "ChaosCosmos.Gameplay",
+        "ChaosCosmos.Services",
+        "Unity.Localization",
+        "Unity.TextMeshPro"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

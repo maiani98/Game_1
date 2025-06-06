@@ -29,6 +29,9 @@ namespace ChaosCosmos.Gameplay.PowerUps
             PlanetController planet = other.GetComponent<PlanetController>();
             if (planet != null)
             {
+                // TODO_SFX: PowerUp_Collected_Generic (o specifico per tipo se powerUpEffect avesse un audio cue ID)
+                // TODO_VFX: Play_PowerUp_Collected_Effect_at_transform_position (es. particelle, flash)
+
                 // Applica l'effetto al pianeta
                 // powerUpEffect.Apply(planet); // Vecchia chiamata
 
